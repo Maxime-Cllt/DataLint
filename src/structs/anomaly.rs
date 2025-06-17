@@ -11,6 +11,7 @@ pub struct Anomaly {
 
 impl Anomaly {
     /// Create a new instance of Anomaly
+    #[inline]
     pub const fn new(value: String, column: String, line: u32, score: f32) -> Self {
         Anomaly {
             value,

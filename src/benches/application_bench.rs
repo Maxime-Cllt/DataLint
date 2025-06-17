@@ -37,7 +37,7 @@ fn test_analyse_file() {
             &format!("Error during file analysis: {e}"),
             LogLevel::Error,
         );
-        return (vec![], 42, 42);
+        (vec![], 42, 42)
     });
 }
 

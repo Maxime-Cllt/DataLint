@@ -62,7 +62,7 @@ fn main() {
         &start_time,
         &dangerous_output,
         &csv_struct.csv_file_path,
-        if cfg!(debug_assertions) { true } else { false },
+        cfg!(debug_assertions),
     );
 
     generate_json_file(

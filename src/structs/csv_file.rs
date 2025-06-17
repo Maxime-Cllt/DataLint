@@ -49,7 +49,7 @@ impl CsvFile {
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    "Impossible de détecter un séparateur valide dans le fichier CSV",
+                    "Error: No valid separator found in the CSV file.",
                 )
             })
             .unwrap()
@@ -74,7 +74,7 @@ impl CsvFile {
         if reader.read_line(&mut buffer)? > 0 {
             Ok(buffer.trim().into())
         } else {
-            Err(io::Error::new(io::ErrorKind::NotFound, "Fichier vide"))
+            Err(io::Error::new(io::ErrorKind::NotFound, "Empty file or not found"))
         }
     }
 
