@@ -5,7 +5,7 @@ mod benches;
 mod tests;
 
 use datelint::enums::log_level::LogLevel;
-use datelint::structs::anomalie::Anomalie;
+use datelint::structs::anomaly::Anomaly;
 use datelint::structs::csv_file::CsvFile;
 use datelint::structs::logger::log_and_print_message;
 use datelint::structs::perfage_model::PerfageModel;
@@ -18,23 +18,20 @@ use std::time::Instant;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let args: [String; 2] =
-        get_file_from_args(&args).expect("Erreur lors de la récupération des arguments");
+        get_file_from_args(&args).expect("Error parsing command line arguments. Usage: DateLint <csv_file> <output_file>");
 
-    // let filepath = r"C:\Users\HHBL8703\Downloads\reference.csv";
 
     let start_time: Instant = Instant::now();
 
-    // Structure de données représentant le modèle Perfage
     let perfage_iae: PerfageModel =
         PerfageModel::from_config_file("config.json").unwrap_or_else(|e| {
             log_and_print_message(
-                &format!("Une erreur est survenue lors de la récupération du modèle Perfage: {e}"),
+                &format!("Error loading model configuration: {e}"),
                 LogLevel::Error,
             );
             exit(1);
         });
 
-    // Vérification de l'existence des fichiers de modèle et de vocabulaire
     [&perfage_iae.model_path, &perfage_iae.vocabulary_path]
         .iter()
         .for_each(|path| {
@@ -43,28 +40,24 @@ fn main() {
             }
         });
 
-    // Structure de données représentant le fichier CSV à analyser
     let csv_struct: CsvFile = CsvFile::from_file(&args[0]).unwrap_or_else(|e| {
         log_and_print_message(
-            &format!("Une erreur est survenue lors de la récupération du fichier CSV: {e}"),
+            &format!("Error reading CSV file: {e}"),
             LogLevel::Error,
         );
         exit(1);
     });
 
-    // Récupération des anomalies détectées dans le fichier CSV
-    let (dangerous_output, ai_analyze, regex_analyze): (Vec<Anomalie>, u32, u32) =
+    let (dangerous_output, ai_analyze, regex_analyze): (Vec<Anomaly>, u32, u32) =
         perfage_iae.analyse_file(&csv_struct).unwrap_or_else(|e| {
             log_and_print_message(
-                &format!("Une erreur est survenue lors de l'analyse du fichier CSV: {e}"),
+                &format!("Error analyzing file: {e}"),
                 LogLevel::Error,
             );
             exit(1);
         });
 
-    // let output = "file";
 
-    // Affichage du rapport
     print_report(
         &start_time,
         &dangerous_output,
@@ -72,14 +65,13 @@ fn main() {
         if cfg!(debug_assertions) { true } else { false },
     );
 
-    // Exécution de l'analyse
     generate_json_file(
         dangerous_output,
         regex_analyze,
         ai_analyze,
         &csv_struct.csv_file_path,
         &args[1],
-        start_time.elapsed().as_millis() - 150,
+        start_time.elapsed().as_millis(),
     );
 
     // Clean-up

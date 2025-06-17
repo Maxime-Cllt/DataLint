@@ -10,7 +10,7 @@ pub struct Logger {
 }
 
 impl Logger {
-    /// Crée une nouvelle instance de Logger
+    /// Create a new Logger instance
     fn new() -> Self {
         let log_file: File = std::fs::OpenOptions::new()
             .create(true)
@@ -21,7 +21,7 @@ impl Logger {
         Self { log_file }
     }
 
-    /// Log un message
+    /// Log a message with the specified log level
     fn log(&self, log_level: &LogLevel, message: &str) {
         let mut log_writer: BufWriter<&File> = BufWriter::new(&self.log_file);
         writeln!(
@@ -30,7 +30,7 @@ impl Logger {
             chrono::Local::now(),
             log_level.as_str()
         )
-        .unwrap_or_else(|_| panic!("Impossible d'écrire dans le fichier de log"));
+        .unwrap_or_else(|_| panic!("Error writing to log file"));
     }
 }
 

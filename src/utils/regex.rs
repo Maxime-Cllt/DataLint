@@ -4,7 +4,7 @@ use regex::RegexSet;
 pub mod safe_regex {
     use regex::Regex;
 
-    /// Pattern pour les dates au format YYYY-MM-DD ou DD-MM-YYYY
+    /// Date and time pattern, supporting various formats
     pub fn get_datetime_regex() -> Regex {
         Regex::new(
             r"(?i)\b(?:\d{4}[-/]\d{2}[-/]\d{2}|\d{2}[-/]\d{2}[-/]\d{4})\s?(?:\d{2}[:]\d{2}[:]\d{2})?\b",
@@ -12,22 +12,22 @@ pub mod safe_regex {
             .unwrap()
     }
 
-    /// Pattern pour les nombres, y compris les nombres négatifs et décimaux
+    /// Numeric pattern, allowing for integers and decimals with optional signs
     pub fn get_numeric_regex() -> Regex {
         Regex::new(r"^[-.]?\d+([.,]\d*)?\s*$").unwrap()
     }
 
-    /// Pattern pour les adresses e-mail
+    /// Email pattern, case-insensitive, allowing for common email formats
     pub fn get_email_regex() -> Regex {
         Regex::new(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Za-z]{2,}\b").unwrap()
     }
 
-    /// Pattern pour les mots simples (sans espaces ni caractères spéciaux)
+    /// Simple word pattern, allowing only letters (case-insensitive)
     pub fn get_simple_word_regex() -> Regex {
         Regex::new(r"^[A-Za-z]+$").unwrap()
     }
 
-    /// Pattern pour les numéros de téléphone (ex: +33, 01, 06, etc.)
+    /// Phone number pattern, allowing for international formats
     pub fn get_phone_number_regex() -> Regex {
         Regex::new(r"[+]?[0-9]{1,2}").unwrap()
     }
@@ -156,7 +156,7 @@ pub mod safe_regex {
 }
 
 pub mod usafe_regex {
-    /// Matches common SQL keywords that could be unsafe
+    /// Matches SQL keywords that could indicate an injection attempt
     pub fn sql_keyword_regex() -> String {
         r"(?i)\b(SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|EXEC|UNION|ALTER|CREATE|REPLACE|MERGE|CALL|DECLARE|CAST)\b".into()
     }
@@ -201,7 +201,7 @@ pub mod usafe_regex {
     }
 }
 
-/// Fonction pour obtenir un ensemble de regex
+/// Return a RegexSet for safe values
 pub fn get_safe_regex_set() -> RegexSet {
     RegexSet::new([
         get_numeric_regex().as_str(),
@@ -213,7 +213,7 @@ pub fn get_safe_regex_set() -> RegexSet {
     .unwrap()
 }
 
-/// Fonction pour obtenir une regex pour les valeurs dangereuses
+/// Return a RegexSet for unsafe values
 pub fn get_unsafe_value_regex_set() -> RegexSet {
     RegexSet::new([
         usafe_regex::sql_keyword_regex().as_str(),

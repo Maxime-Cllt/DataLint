@@ -9,7 +9,7 @@ use tokenizers::{Encoding, Tokenizer};
 pub struct ModelTokenizer;
 
 impl ModelTokenizer {
-    /// Charge un modèle PerfageModel à partir d'un fichier JSON.
+    /// Load the tokenizer from a configuration file.
     pub fn from_config_file(file_path: &str) -> Result<Tokenizer, Box<dyn Error>> {
         let tokenizer: Tokenizer = Tokenizer::from_file(file_path).unwrap_or_else(|e| {
             print_message(
@@ -21,7 +21,7 @@ impl ModelTokenizer {
         Ok(tokenizer)
     }
 
-    /// Encode les mots en utilisant le tokenizer et renvoie les encodages et la longueur maximale de la séquence.
+    /// Encode the words from a batch of `InferableValue` into a vector of `Encoding` and returns the maximum sequence length.
     pub fn encode_words(
         tokenizer: &Tokenizer,
         batch_data: &[InferableValue],
@@ -40,7 +40,7 @@ impl ModelTokenizer {
         (encodings, max_seq_length)
     }
 
-    /// Convertit les identifiants d'encodage en un vecteur d'entiers 64 bits et renvoie également la longueur de la séquence.
+    /// Convert the IDs from an `Encoding` into a vector of `i64` and returns the sequence length.
     pub fn ids_to_vector(encoding: &Encoding) -> (Vec<i64>, i64) {
         let ids: &[u32] = encoding.get_ids();
         let ids: Vec<i64> = ids.par_iter().map(|&x| i64::from(x)).collect();
@@ -48,7 +48,7 @@ impl ModelTokenizer {
         (ids, seq_length)
     }
 
-    /// Construit un vecteur de jetons à partir des encodages et de la longueur maximale de la séquence.
+    /// Build padded token IDs and attention masks from a list of `Encoding` objects.
     pub fn build_tokens(encodings: &[Encoding], max_seq_length: i64) -> (Vec<i64>, Vec<i64>) {
         const PAD_TOKEN_ID: i64 = 0;
         let batch_size: usize = encodings.len();
@@ -83,7 +83,7 @@ mod tests {
         let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
-                &format!("Erreur lors de la lecture du fichier de vocabulaire: {e}"),
+                &format!("Error reading vocabulary file: {e}"),
                 &LogLevel::Error,
             );
             std::process::exit(1);
@@ -115,7 +115,7 @@ mod tests {
         let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
-                &format!("Erreur lors de la lecture du fichier de vocabulaire: {e}"),
+                &format!("Error reading vocabulary file: {e}"),
                 &LogLevel::Error,
             );
             std::process::exit(1);
@@ -140,7 +140,7 @@ mod tests {
         let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
-                &format!("Erreur lors de la lecture du fichier de vocabulaire: {e}"),
+                &format!("Error reading vocabulary file: {e}"),
                 &LogLevel::Error,
             );
             std::process::exit(1);
@@ -176,7 +176,7 @@ mod tests {
         let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
-                &format!("Erreur lors de la lecture du fichier de vocabulaire: {e}"),
+                &format!("Error reading vocabulary file: {e}"),
                 &LogLevel::Error,
             );
             std::process::exit(1);

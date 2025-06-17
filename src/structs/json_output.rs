@@ -1,20 +1,20 @@
-use crate::structs::anomalie::Anomalie;
+use crate::structs::anomaly::Anomaly;
 
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct JsonOutput {
-    pub analysed_file: String,    // Nom du fichier analysé
-    pub ai_analyze: u32,          // Nombre d'anomalies détectées par l'IA
-    pub regex_analyze: u32,       // Nombre d'anomalies détectées par l'IA et par regex
-    pub time_ms: u128,               // Temps d'analyse
-    pub anomalies: Vec<Anomalie>, // Liste des anomalies détectées
+    pub analysed_file: String,
+    pub ai_analyze: u32,
+    pub regex_analyze: u32,
+    pub time_ms: u128,
+    pub anomalies: Vec<Anomaly>,
 }
 
 impl JsonOutput {
-    /// Créer une nouvelle instance de JsonFile.
+    /// Create a new instance of JsonOutput
     pub fn new(
-        anomalies: Vec<Anomalie>,
+        anomalies: Vec<Anomaly>,
         analysed_file: String,
         ai_analyze: u32,
         regex_analyze: u32,
@@ -29,6 +29,7 @@ impl JsonOutput {
         }
     }
 
+    /// Save the JsonOutput to a file in pretty JSON format
     pub fn save_to_file(&self, file_path: &str) -> std::io::Result<()> {
         let json_data: String = serde_json::to_string_pretty(self)?;
         std::fs::write(file_path, json_data)

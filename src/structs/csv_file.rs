@@ -21,7 +21,7 @@ pub struct CsvFile {
 }
 
 impl CsvFile {
-    /// Structure de données représentant un fichier CSV.
+    /// Create a new CsvFile instance with the given path and separator.
     pub fn new(csv_file_path: &str, separator: u8) -> Self {
         CsvFile {
             csv_file_path: String::from(csv_file_path),
@@ -29,7 +29,7 @@ impl CsvFile {
         }
     }
 
-    /// Retourne le séparateur utilisé dans un fichier CSV.
+    /// Return the separator as a char.
     pub fn find_separator_in_file(csv_file_path: &str) -> SeparatorType {
         const POSSIBLE_SEPARATORS: [SeparatorType; 6] = [
             SeparatorType::Semicolon,
@@ -55,7 +55,7 @@ impl CsvFile {
             .unwrap()
     }
 
-    /// Retourne les en-têtes d'un fichier CSV.
+    /// Return the headers of the CSV file as a StringRecord.
     pub fn get_headers(&self) -> Result<StringRecord, Box<dyn Error>> {
         let binding: String = Self::read_first_line(&self.csv_file_path)?;
         let first_line: &str = binding.trim();
@@ -65,7 +65,7 @@ impl CsvFile {
         Ok(headers)
     }
 
-    /// Retourne la première ligne d'un fichier.
+    /// Read the first line of a file and return it as a String.
     pub fn read_first_line(file_path: &str) -> io::Result<String> {
         let file: File = File::open(file_path)?;
         let mut reader: BufReader<File> = BufReader::new(file);
@@ -78,7 +78,7 @@ impl CsvFile {
         }
     }
 
-    /// Indique si un fichier est encodé en UTF-8.
+    /// Check if a file is encoded in UTF-8.
     pub fn is_file_utf8(file_path: &str) -> Result<bool, Box<dyn Error>> {
         const CHUNK_SIZE: usize = 16 * 1024; // 16 KB
 
@@ -99,14 +99,14 @@ impl CsvFile {
         Ok(true)
     }
 
-    /// Convertit un fichier en UTF-8.
+    /// Convert a file to UTF-8 encoding and save it in the "utf8" directory.
     pub fn convert_file_to_utf8(input_path: &str) -> Result<String, Box<dyn Error>> {
         const UTF8: &str = "utf8";
 
         if !std::path::Path::new(UTF8).exists() {
             if let Err(e) = std::fs::create_dir(UTF8) {
                 log_and_print_message(
-                    &format!("Impossible de créer le répertoire de sortie: {e}"),
+                    &format!("Error creating 'utf8' directory: {e}"),
                     LogLevel::Error,
                 );
             }
@@ -117,10 +117,7 @@ impl CsvFile {
         let output_file: File = match File::create(&encoded_file_name) {
             Ok(file) => file,
             Err(e) => {
-                log_and_print_message(
-                    &format!("Impossible de créer le fichier de sortie: {e}"),
-                    LogLevel::Error,
-                );
+                log_and_print_message(&format!("Error creating output file: {e}"), LogLevel::Error);
                 std::process::exit(1);
             }
         };
@@ -137,13 +134,11 @@ impl CsvFile {
         Ok(encoded_file_name)
     }
 
-    /// Vérifie si le fichier est en UTF-8, le convertit si ce n'est pas le cas et retourne le chemin du fichier.
+    /// Create a CsvFile instance from a file path, checking its encoding and separator.
     pub fn from_file(csv_file_path: &str) -> Result<CsvFile, Box<dyn Error>> {
         let is_utf8: bool = Self::is_file_utf8(csv_file_path).map_err(|e| {
             log_and_print_message(
-                &format!(
-                    "Une erreur est survenue lors de la vérification de l'encodage du fichier: {e}"
-                ),
+                &format!("Error checking file encoding: {e}",),
                 LogLevel::Error,
             );
             e
@@ -152,7 +147,7 @@ impl CsvFile {
         let csv_file_path: String = if !is_utf8 {
             Self::convert_file_to_utf8(csv_file_path).map_err(|e| {
                 log_and_print_message(
-                    &format!("Une erreur est survenue lors de la conversion du fichier: {e}"),
+                    &format!("Error converting file to UTF-8: {e}"),
                     LogLevel::Error,
                 );
                 e
@@ -169,7 +164,7 @@ impl CsvFile {
             SeparatorType::Null => SeparatorType::Null,
             _ => {
                 log_and_print_message(
-                    "Le séparateur du fichier CSV est invalide.",
+                    "Error: Unable to detect a valid separator in the CSV file.",
                     LogLevel::Error,
                 );
                 std::process::exit(1);
@@ -179,8 +174,8 @@ impl CsvFile {
         Ok(CsvFile::new(&csv_file_path, separator))
     }
 
-    /// Collecte les enregistrements CSV à partir d'un fichier CSV et renvoie un vecteur de StringRecord.
-   pub fn collect_unsafe_value(
+    /// Collect unsafe values from the CSV file based on regex patterns.
+    pub fn collect_unsafe_value(
         &self,
         csv_file_struct: &CsvFile,
         regex_analyze: &mut u32,
@@ -201,7 +196,7 @@ impl CsvFile {
                 Ok(record) => record,
                 Err(e) => {
                     print_message(
-                        &format!("Erreur lors de la lecture de l'enregistrement CSV: {e}"),
+                        &format!("Error reading record at row {row_number}: {e}"),
                         &LogLevel::Error,
                     );
                     continue;

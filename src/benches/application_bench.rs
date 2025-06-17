@@ -6,13 +6,13 @@ use datelint::structs::perfage_model::PerfageModel;
 use std::time::Duration;
 
 fn test_analyse_file() {
-    let filepath = r"C:\Users\HHBL8703\Downloads\reference.csv";
+    let filepath = r"";
 
     let perfage_iae: PerfageModel = match PerfageModel::from_config_file("config.json") {
         Ok(perfage) => perfage,
         Err(e) => {
             log_and_print_message(
-                &format!("Une erreur est survenue lors de la récupération du modèle Perfage : {e}"),
+                &format!("Error loading model configuration: {e}"),
                 LogLevel::Error,
             );
             std::process::exit(1);
@@ -24,7 +24,7 @@ fn test_analyse_file() {
         Ok(csv) => csv,
         Err(e) => {
             log_and_print_message(
-                &format!("Une erreur est survenue lors de la récupération du fichier CSV: {e}"),
+                &format!("Error reading CSV file: {e}"),
                 LogLevel::Error,
             );
             std::process::exit(1);
@@ -34,7 +34,7 @@ fn test_analyse_file() {
     // Récupération des anomalies détectées dans le fichier CSV
     perfage_iae.analyse_file(&csv_struct).unwrap_or_else(|e| {
         log_and_print_message(
-            &format!("Une erreur est survenue lors de l'analyse du fichier CSV: {e}"),
+            &format!("Error during file analysis: {e}"),
             LogLevel::Error,
         );
         return (vec![], 42, 42);

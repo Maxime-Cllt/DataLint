@@ -1,5 +1,5 @@
 use crate::tests::csv_tests::csv_utils::generate_csv_file;
-use datelint::structs::anomalie::Anomalie;
+use datelint::structs::anomaly::Anomaly;
 use datelint::structs::json_output::JsonOutput;
 use datelint::utils::util::{file_exists, generate_json_file, get_file_from_args, get_file_name};
 
@@ -60,13 +60,13 @@ async fn test_generate_json_file() {
         regex_analyze: 10,
         time_ms : 100,
         anomalies: vec![
-            Anomalie::new(
+            Anomaly::new(
                 String::from("Danger1"),
                 String::from("Colonne1"),
                 ZERO,
                 ZERO_PROB,
             ),
-            Anomalie::new(
+            Anomaly::new(
                 String::from("Danger2"),
                 String::from("Colonne2"),
                 ZERO,
@@ -88,10 +88,10 @@ async fn test_generate_json_file() {
     assert_eq!(content.anomalies.len(), 2);
 
     for (i, anomaly) in content.anomalies.iter().enumerate() {
-        assert_eq!(anomaly.colonne, json_response.anomalies[i].colonne);
-        assert_eq!(anomaly.valeur, json_response.anomalies[i].valeur);
+        assert_eq!(anomaly.column, json_response.anomalies[i].column);
+        assert_eq!(anomaly.value, json_response.anomalies[i].value);
         assert_eq!(anomaly.score, json_response.anomalies[i].score);
-        assert_eq!(anomaly.ligne, json_response.anomalies[i].ligne);
+        assert_eq!(anomaly.line, json_response.anomalies[i].line);
     }
 
     delete_file("json/test_generate_json_file.json");

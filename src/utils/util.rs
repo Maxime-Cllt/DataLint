@@ -1,6 +1,6 @@
 use crate::enums::color::Color;
 use crate::enums::log_level::LogLevel;
-use crate::structs::anomalie::Anomalie;
+use crate::structs::anomaly::Anomaly;
 use crate::structs::json_output::JsonOutput;
 use crate::structs::logger::{log_and_print_message, log_message, print_message};
 use std::io::{Error, ErrorKind};
@@ -9,7 +9,7 @@ use std::time::Instant;
 
 /// Génère un fichier JSON contenant les anomalies détectées
 pub fn generate_json_file(
-    dangerous_output: Vec<Anomalie>,
+    dangerous_output: Vec<Anomaly>,
     regex_analyze: u32,
     ai_analyze: u32,
     analysed_file: &str,
@@ -102,13 +102,13 @@ pub fn get_file_from_args(args: &[String]) -> Result<[String; 2], Error> {
 /// Affiche le rapport d'analyse dans la console et le fichier de log
 pub fn print_report(
     start_time: &Instant,
-    dangerous_output: &[Anomalie],
+    dangerous_output: &[Anomaly],
     csv_file_path: &str,
     debug: bool,
 ) {
     let nombre_anomalies: usize = dangerous_output.len();
     if debug {
-        Anomalie::print_result(dangerous_output);
+        Anomaly::print_result(dangerous_output);
         print_message(
             format!(
                 "Nombre d'anomalies: {}{nombre_anomalies}{}",
