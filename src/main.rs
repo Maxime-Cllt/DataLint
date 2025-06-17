@@ -8,7 +8,7 @@ use datelint::enums::log_level::LogLevel;
 use datelint::structs::anomaly::Anomaly;
 use datelint::structs::csv_file::CsvFile;
 use datelint::structs::logger::log_and_print_message;
-use datelint::structs::perfage_model::PerfageModel;
+use datelint::structs::model::Model;
 use datelint::utils::util::{
     file_exists, generate_json_file, get_file_from_args, print_report, run_post_execution,
 };
@@ -23,8 +23,8 @@ fn main() {
 
     let start_time: Instant = Instant::now();
 
-    let perfage_iae: PerfageModel =
-        PerfageModel::from_config_file("config.json").unwrap_or_else(|e| {
+    let perfage_iae: Model =
+        Model::from_config_file("config.json").unwrap_or_else(|e| {
             log_and_print_message(
                 &format!("Error loading model configuration: {e}"),
                 LogLevel::Error,

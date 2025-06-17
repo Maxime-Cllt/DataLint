@@ -18,7 +18,8 @@ or anomalous data patterns using advanced AI techniques.
 
 ### ✨ Key Features
 
-- 🔍 **AI-Powered Detection**: Leverages pre-trained neural networks for intelligent data anomaly detection
+- 🔍 **AI-Powered Detection**: Leverages pre-trained neural networks for intelligent data anomaly detection,
+  use [TinyBERT](https://huggingface.co/prajjwal1/bert-tiny) tokenizer for efficient data indexing
 - ⚡ **High Performance**: Built with Rust for maximum speed and memory efficiency
 - 📁 **CSV Processing**: Specialized for CSV file validation and analysis
 - 🛡️ **Security Focus**: Identifies potentially dangerous or malicious data patterns
@@ -173,17 +174,9 @@ DataLint generates detailed JSON reports with the following structure:
 
 ### Building from Source
 
+To build DataLint from source, ensure you have Rust and Cargo installed, then run:
+
 ```bash
-# Check code formatting
-cargo fmt --check
-
-# Run linting
-cargo clippy
-
-# Run tests
-cargo test
-
-# Build optimized release
 cargo build --release
 ```
 

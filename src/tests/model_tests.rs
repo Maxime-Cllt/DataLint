@@ -1,4 +1,4 @@
-use datelint::structs::perfage_model::PerfageModel;
+use datelint::structs::model::Model;
 use std::fs::File;
 use std::io::Write;
 
@@ -16,7 +16,7 @@ async fn test_from_config_file() {
     let mut file: File = File::create(CONFIG_JSON_PATH).unwrap();
     file.write_all(CONFIG_JSON.as_bytes()).unwrap();
 
-    let model: PerfageModel = PerfageModel::from_config_file(CONFIG_JSON_PATH).unwrap();
+    let model: Model = Model::from_config_file(CONFIG_JSON_PATH).unwrap();
     assert_eq!(model.model_path, "model.pb");
     assert_eq!(model.vocabulary_path, "vectorizer_data.json");
 

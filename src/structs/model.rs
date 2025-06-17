@@ -12,16 +12,16 @@ use tch::{CModule, Device, Tensor};
 use tokenizers::{Encoding, Tokenizer};
 
 #[derive(Deserialize)]
-pub struct PerfageModel {
+pub struct Model {
     pub model_path: String,
     pub vocabulary_path: String,
 }
 
-impl PerfageModel {
-    /// Load the model configuration from a JSON file and return a PerfageModel instance.
+impl Model {
+    /// Load the model configuration from a JSON file and return a Model instance.
     pub fn from_config_file(json_path: &str) -> Result<Self, Box<dyn Error>> {
         let json_file: File = File::open(json_path)?;
-        let model: PerfageModel = serde_json::from_reader(json_file).unwrap_or_else(|e| {
+        let model: Model = serde_json::from_reader(json_file).unwrap_or_else(|e| {
             print_message(
                 &format!("Error reading model configuration from JSON: {e}"),
                 &LogLevel::Error,
@@ -53,7 +53,7 @@ impl PerfageModel {
         csv_file_struct: &CsvFile,
     ) -> Result<(Vec<Anomaly>, u32, u32), Box<dyn Error>> {
         let mut regex_analyze: u32 = 0;
-        let mut ai_analyze: u32 = 0; 
+        let mut ai_analyze: u32 = 0;
 
         let batch_data: Vec<InferableValue> =
             csv_file_struct.collect_unsafe_value(csv_file_struct, &mut regex_analyze)?;

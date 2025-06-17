@@ -2,13 +2,13 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use datelint::enums::log_level::LogLevel;
 use datelint::structs::csv_file::CsvFile;
 use datelint::structs::logger::log_and_print_message;
-use datelint::structs::perfage_model::PerfageModel;
+use datelint::structs::model::Model;
 use std::time::Duration;
 
 fn test_analyse_file() {
     let filepath = r"";
 
-    let perfage_iae: PerfageModel = match PerfageModel::from_config_file("config.json") {
+    let perfage_iae: Model = match Model::from_config_file("config.json") {
         Ok(perfage) => perfage,
         Err(e) => {
             log_and_print_message(
