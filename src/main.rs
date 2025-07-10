@@ -27,7 +27,7 @@ fn main() {
         Model::from_config_file("config.json").unwrap_or_else(|e| {
             log_and_print_message(
                 &format!("Error loading model configuration: {e}"),
-                LogLevel::Error,
+                &LogLevel::Error,
             );
             exit(1);
         });
@@ -43,7 +43,7 @@ fn main() {
     let csv_struct: CsvFile = CsvFile::from_file(&args[0]).unwrap_or_else(|e| {
         log_and_print_message(
             &format!("Error reading CSV file: {e}"),
-            LogLevel::Error,
+            &LogLevel::Error,
         );
         exit(1);
     });
@@ -52,7 +52,7 @@ fn main() {
         perfage_iae.analyse_file(&csv_struct).unwrap_or_else(|e| {
             log_and_print_message(
                 &format!("Error analyzing file: {e}"),
-                LogLevel::Error,
+                &LogLevel::Error,
             );
             exit(1);
         });

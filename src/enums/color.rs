@@ -9,13 +9,16 @@ pub enum Color {
 }
 
 impl Color {
-    pub fn as_str(&self) -> &'static str {
+    /// Returns the ANSI escape code for the color as a static string.
+    #[inline]
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
         match self {
-            Color::Red => "\x1b[31m",
-            Color::Green => "\x1b[32m",
-            Color::Yellow => "\x1b[33m",
-            Color::Blue => "\x1b[34m",
-            Color::Reset => "\x1b[0m",
+            Self::Red => "\x1b[31m",
+            Self::Green => "\x1b[32m",
+            Self::Yellow => "\x1b[33m",
+            Self::Blue => "\x1b[34m",
+            Self::Reset => "\x1b[0m",
         }
     }
 }

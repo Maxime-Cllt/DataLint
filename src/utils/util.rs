@@ -21,16 +21,21 @@ pub fn generate_json_file(
         if let Err(e) = std::fs::create_dir(JSON_DIR) {
             log_and_print_message(
                 format!(
-                    "Error while creating the JSON directory: {e}. Please create the directory manually at: {}",
-                    JSON_DIR
+                    "Error while creating the JSON directory: {e}. Please create the directory manually at: {JSON_DIR}"
                 )
-                .as_str(),
-                LogLevel::Error,
+                    .as_str(),
+                &LogLevel::Error,
             );
         }
     }
 
-    let binding: PathBuf = std::env::current_dir().unwrap();
+    let binding: PathBuf = std::env::current_dir().unwrap_or_else(|e| {
+        log_and_print_message(
+            format!("Error while getting the current directory: {e}").as_str(),
+            &LogLevel::Error,
+        );
+        std::path::PathBuf::from(".")
+    });
     let current_dir: &str = binding.to_str().unwrap();
     let save_path: String = format!("{JSON_DIR}/{output_file_name}.{JSON_DIR}");
 
@@ -45,7 +50,7 @@ pub fn generate_json_file(
     if let Err(e) = json_response.save_to_file(&save_path) {
         log_and_print_message(
             format!("Error while saving the JSON file: {e}").as_str(),
-            LogLevel::Error,
+            &LogLevel::Error,
         );
         return;
     }
@@ -80,21 +85,27 @@ pub fn get_file_from_args(args: &[String]) -> Result<[String; 2], Error> {
         ));
     }
 
-    if !args[1].ends_with(".csv") {
+    if !std::path::Path::new(&args[1])
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("csv"))
+    {
         return Err(Error::new(
             ErrorKind::InvalidInput,
             format!("File {} must be in CSV format", &args[1]),
         ));
     }
 
-    if !args[2].ends_with(".json") {
+    if !std::path::Path::new(&args[2])
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
+    {
         return Err(Error::new(
             ErrorKind::InvalidInput,
             format!("File {} must be in JSON format", &args[2]),
         ));
     }
 
-    let csv_file_path: String = String::from(&args[1].replace("\\", "/"));
+    let csv_file_path: String = String::from(&args[1].replace('\\', "/"));
     let output_name: String = String::from(get_file_name(&args[2]));
     Ok([csv_file_path, output_name])
 }
@@ -139,7 +150,13 @@ pub fn print_report(
         );
     }
     log_message(
-        format!("Anomalies: [{anomalies_count}] in file : {}, Execution time: [{:?}]", get_file_name(csv_file_path), start_time.elapsed()).as_str(), &LogLevel::Info,
+        format!(
+            "Anomalies: [{anomalies_count}] in file : {}, Execution time: [{:?}]",
+            get_file_name(csv_file_path),
+            start_time.elapsed()
+        )
+        .as_str(),
+        &LogLevel::Info,
     );
 }
 
@@ -149,13 +166,15 @@ pub fn run_post_execution(file_path: &str) {
         std::fs::remove_file(file_path).unwrap_or_else(|e| {
             log_and_print_message(
                 format!("Error while deleting the temporary file {e}",).as_str(),
-                LogLevel::Error,
-            )
+                &LogLevel::Error,
+            );
         });
     }
 }
 
 /// Extract the file name without the extension from a given file path.
+#[inline]
+#[must_use]
 pub fn get_file_name(file_path: &str) -> &str {
     file_path
         .rsplit(&['\\', '/'] as &[char])
@@ -163,16 +182,17 @@ pub fn get_file_name(file_path: &str) -> &str {
         .unwrap()
         .split('.')
         .next()
-        .unwrap()
+        .unwrap_or("")
 }
 
 /// Check if a file exists at the given path and log an error message if it does not.
+#[must_use]
 pub fn file_exists(file_path: &str) -> bool {
     let exist: bool = std::path::Path::new(file_path).exists();
     if !exist {
         log_and_print_message(
             format!("File {file_path} does not exist").as_str(),
-            LogLevel::Error,
+            &LogLevel::Error,
         );
     }
     exist

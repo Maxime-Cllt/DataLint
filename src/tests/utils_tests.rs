@@ -54,12 +54,8 @@ async fn test_generate_json_file() {
     const ZERO: u32 = 0;
     const JSON_FILE: &str = "test_generate_json_file";
 
-    let json_response: JsonOutput = JsonOutput {
-        analysed_file: String::from("test.csv"),
-        ai_analyze: 15,
-        regex_analyze: 10,
-        time_ms : 100,
-        anomalies: vec![
+    let json_response = JsonOutput::new(
+        vec![
             Anomaly::new(
                 String::from("Danger1"),
                 String::from("Colonne1"),
@@ -73,9 +69,20 @@ async fn test_generate_json_file() {
                 ZERO_PROB,
             ),
         ],
-    };
+        String::from("test.csv"),
+        15,
+        10,
+        100,
+    );
 
-    generate_json_file(json_response.anomalies.clone(), 0, 0, "test.csv", JSON_FILE, 100);
+    generate_json_file(
+        json_response.anomalies.clone(),
+        0,
+        0,
+        "test.csv",
+        JSON_FILE,
+        100,
+    );
 
     assert!(std::path::Path::new("json/test_generate_json_file.json").exists());
 

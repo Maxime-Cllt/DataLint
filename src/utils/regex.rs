@@ -1,10 +1,15 @@
-use crate::utils::regex::safe_regex::*;
+use crate::utils::regex::safe_regex::{
+    get_datetime_regex, get_email_regex, get_numeric_regex, get_phone_number_regex,
+    get_simple_word_regex,
+};
 use regex::RegexSet;
 
 pub mod safe_regex {
     use regex::Regex;
 
     /// Date and time pattern, supporting various formats
+    #[inline]
+    #[must_use]
     pub fn get_datetime_regex() -> Regex {
         Regex::new(
             r"(?i)\b(?:\d{4}[-/]\d{2}[-/]\d{2}|\d{2}[-/]\d{2}[-/]\d{4})\s?(?:\d{2}[:]\d{2}[:]\d{2})?\b",
@@ -13,21 +18,29 @@ pub mod safe_regex {
     }
 
     /// Numeric pattern, allowing for integers and decimals with optional signs
+    #[inline]
+    #[must_use]
     pub fn get_numeric_regex() -> Regex {
         Regex::new(r"^[-.]?\d+([.,]\d*)?\s*$").unwrap()
     }
 
     /// Email pattern, case-insensitive, allowing for common email formats
+    #[inline]
+    #[must_use]
     pub fn get_email_regex() -> Regex {
         Regex::new(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Za-z]{2,}\b").unwrap()
     }
 
     /// Simple word pattern, allowing only letters (case-insensitive)
+    #[inline]
+    #[must_use]
     pub fn get_simple_word_regex() -> Regex {
         Regex::new(r"^[A-Za-z]+$").unwrap()
     }
 
     /// Phone number pattern, allowing for international formats
+    #[inline]
+    #[must_use]
     pub fn get_phone_number_regex() -> Regex {
         Regex::new(r"[+]?[0-9]{1,2}").unwrap()
     }
@@ -41,7 +54,6 @@ pub mod safe_regex {
 
         #[tokio::test]
         async fn test_valid_dates() {
-            let regex: Regex = get_datetime_regex();
             const VALID_DATES: [&str; 8] = [
                 "2024-02-03",
                 "2024/02/03",
@@ -52,25 +64,24 @@ pub mod safe_regex {
                 "03-02-2024 00:00:00",
                 "03/02/2024 07:45:30",
             ];
-
-            for date in VALID_DATES.iter() {
+            let regex: Regex = get_datetime_regex();
+            for date in &VALID_DATES {
                 assert!(regex.is_match(date), "Erreur sur: {date}");
             }
         }
 
         #[tokio::test]
         async fn test_invalid_dates() {
-            let regex: Regex = get_datetime_regex();
             const INVALID_DATES: [&str; 3] = ["random text", "not a date", "is it a date?"];
+            let regex: Regex = get_datetime_regex();
 
-            for date in INVALID_DATES.iter() {
+            for date in &INVALID_DATES {
                 assert!(!regex.is_match(date), "Erreur sur: {date}");
             }
         }
 
         #[tokio::test]
         async fn test_valid_numbers() {
-            let regex: Regex = get_numeric_regex();
             const VALID_NUMBERS: [&str; 12] = [
                 "123",
                 "-123",
@@ -86,7 +97,9 @@ pub mod safe_regex {
                 "-4645464664.6515",
             ];
 
-            for num in VALID_NUMBERS.iter() {
+            let regex: Regex = get_numeric_regex();
+
+            for num in &VALID_NUMBERS {
                 assert!(regex.is_match(num), "Erreur sur: {num}");
             }
         }
@@ -98,14 +111,13 @@ pub mod safe_regex {
                 "abc", "123abc", "--3.14", "3..14", "3,14,15", "..5", "az4a4z6", "0.0.0",
             ];
 
-            for num in INVALID_NUMBERS.iter() {
+            for num in &INVALID_NUMBERS {
                 assert!(!regex.is_match(num), "Erreur sur: {num}");
             }
         }
 
         #[tokio::test]
         async fn test_valid_emails() {
-            let regex: Regex = get_email_regex();
             const VALID_EMAILS: [&str; 5] = [
                 "test@example.com",
                 "user.name+tag@domain.co.uk",
@@ -114,14 +126,15 @@ pub mod safe_regex {
                 "a@b.io",
             ];
 
-            for email in VALID_EMAILS.iter() {
+            let regex: Regex = get_email_regex();
+
+            for email in &VALID_EMAILS {
                 assert!(regex.is_match(email), "Erreur sur: {email}");
             }
         }
 
         #[tokio::test]
         async fn test_invalid_emails() {
-            let regex: Regex = get_email_regex();
             const INVALID_EMAILS: [&str; 6] = [
                 "plainaddress",
                 "@missinguser.com",
@@ -131,14 +144,15 @@ pub mod safe_regex {
                 "user domain.com",
             ];
 
-            for email in INVALID_EMAILS.iter() {
+            let regex: Regex = get_email_regex();
+
+            for email in &INVALID_EMAILS {
                 assert!(!regex.is_match(email), "Erreur sur: {email}");
             }
         }
 
         #[tokio::test]
         async fn test_get_simple_word_regex() {
-            let regex: Regex = get_simple_word_regex();
             const VALID_WORD: [&str; 6] = [
                 "hello-world",
                 "hello_world",
@@ -148,7 +162,9 @@ pub mod safe_regex {
                 "NUMERI:",
             ];
 
-            for email in VALID_WORD.iter() {
+            let regex: Regex = get_simple_word_regex();
+
+            for email in &VALID_WORD {
                 assert!(!regex.is_match(email), "Erreur sur: {email}");
             }
         }
@@ -157,13 +173,17 @@ pub mod safe_regex {
 
 pub mod usafe_regex {
     /// Matches SQL keywords that could indicate an injection attempt
-    pub fn sql_keyword_regex() -> String {
-        r"(?i)\b(SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|EXEC|UNION|ALTER|CREATE|REPLACE|MERGE|CALL|DECLARE|CAST)\b".into()
+    #[inline]
+    #[must_use]
+    pub const fn sql_keyword_regex() -> &'static str {
+        r"(?i)\b(SELECT|INSERT|UPDATE|DELETE|DROP|TRUNCATE|EXEC|UNION|ALTER|CREATE|REPLACE|MERGE|CALL|DECLARE|CAST)\b"
     }
 
     /// Matches any suspicious or illegal character
-    pub fn illegal_char_regex() -> String {
-        r"[^\w\s]".into()
+    #[inline]
+    #[must_use]
+    pub const fn illegal_char_regex() -> &'static str {
+        r"[^\w\s]"
     }
 
     #[cfg(test)]
@@ -173,19 +193,19 @@ pub mod usafe_regex {
 
         #[tokio::test]
         async fn test_sql_keyword_regex() {
-            let regex: String = sql_keyword_regex();
-            let regex: Regex = Regex::new(&regex).unwrap();
             const SQL_KEYWORDS: [&str; 5] = ["SELECT", "INSERT", "UPDATE", "DELETE", "DROP"];
+            let regex = sql_keyword_regex();
+            let regex: Regex = Regex::new(regex).unwrap();
 
-            for keyword in SQL_KEYWORDS.iter() {
-                assert!(regex.is_match(keyword), "Erreur sur: {keyword}");
+            for keyword in &SQL_KEYWORDS {
+                assert!(regex.is_match(keyword), "Error on : {keyword}");
             }
         }
 
         #[tokio::test]
         async fn test_illegal_char_regex() {
-            let regex: String = illegal_char_regex();
-            let regex: Regex = Regex::new(&regex).unwrap();
+            let regex = illegal_char_regex();
+            let regex: Regex = Regex::new(regex).unwrap();
             const ILLEGAL_CHARS: [&str; 5] = [
                 "@#$%^&*()",
                 "<script>",
@@ -194,14 +214,16 @@ pub mod usafe_regex {
                 "\" OR \"a\"=\"a",
             ];
 
-            for char in ILLEGAL_CHARS.iter() {
-                assert!(regex.is_match(char), "Erreur sur: {char}");
+            for char in &ILLEGAL_CHARS {
+                assert!(regex.is_match(char), "Error on : {char}");
             }
         }
     }
 }
 
-/// Return a RegexSet for safe values
+/// Return a `RegexSet` for unsafe values
+#[inline]
+#[must_use]
 pub fn get_safe_regex_set() -> RegexSet {
     RegexSet::new([
         get_numeric_regex().as_str(),
@@ -213,11 +235,13 @@ pub fn get_safe_regex_set() -> RegexSet {
     .unwrap()
 }
 
-/// Return a RegexSet for unsafe values
+/// Return a `RegexSet` for unsafe values
+#[inline]
+#[must_use]
 pub fn get_unsafe_value_regex_set() -> RegexSet {
     RegexSet::new([
-        usafe_regex::sql_keyword_regex().as_str(),
-        usafe_regex::illegal_char_regex().as_str(),
+        usafe_regex::sql_keyword_regex(),
+        usafe_regex::illegal_char_regex(),
     ])
     .unwrap()
 }

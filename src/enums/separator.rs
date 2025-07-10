@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SeparatorType {
     Comma,
     Semicolon,
@@ -9,14 +9,18 @@ pub enum SeparatorType {
 }
 
 impl SeparatorType {
-    pub(crate) fn as_char(&self) -> char {
+
+    /// Returns the separator as a `char`.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn as_char(&self) -> char {
         match self {
-            SeparatorType::Comma => ',',
-            SeparatorType::Semicolon => ';',
-            SeparatorType::Tab => '\t',
-            SeparatorType::Pipe => '|',
-            SeparatorType::Null => '\0',
-            SeparatorType::Invalid => ' ',
+            Self::Comma => ',',
+            Self::Semicolon => ';',
+            Self::Tab => '\t',
+            Self::Pipe => '|',
+            Self::Null => '\0',
+            Self::Invalid => ' ',
         }
     }
 }
@@ -79,11 +83,11 @@ mod test {
         let pipe: SeparatorType = SeparatorType::Pipe;
         let null: SeparatorType = SeparatorType::Null;
         let invalid: SeparatorType = SeparatorType::Invalid;
-        assert_eq!(comma.clone(), SeparatorType::Comma);
-        assert_eq!(semicolon.clone(), SeparatorType::Semicolon);
-        assert_eq!(tab.clone(), SeparatorType::Tab);
-        assert_eq!(pipe.clone(), SeparatorType::Pipe);
-        assert_eq!(null.clone(), SeparatorType::Null);
-        assert_eq!(invalid.clone(), SeparatorType::Invalid);
+        assert_eq!(comma, SeparatorType::Comma);
+        assert_eq!(semicolon, SeparatorType::Semicolon);
+        assert_eq!(tab, SeparatorType::Tab);
+        assert_eq!(pipe, SeparatorType::Pipe);
+        assert_eq!(null, SeparatorType::Null);
+        assert_eq!(invalid, SeparatorType::Invalid);
     }
 }

@@ -21,7 +21,7 @@ impl Model {
     /// Load the model configuration from a JSON file and return a Model instance.
     pub fn from_config_file(json_path: &str) -> Result<Self, Box<dyn Error>> {
         let json_file: File = File::open(json_path)?;
-        let model: Model = serde_json::from_reader(json_file).unwrap_or_else(|e| {
+        let model = serde_json::from_reader(json_file).unwrap_or_else(|e| {
             print_message(
                 &format!("Error reading model configuration from JSON: {e}"),
                 &LogLevel::Error,
@@ -79,7 +79,7 @@ impl Model {
         Ok((anomalies, ai_analyze, regex_analyze))
     }
 
-    fn forward(model: &mut CModule, input_ids: Tensor, attention_mask: Tensor) -> Tensor {
+    fn forward(model: &CModule, input_ids: Tensor, attention_mask: Tensor) -> Tensor {
         let output: Tensor = tch::no_grad(|| {
             model
                 .forward_ts(&[input_ids, attention_mask])
@@ -125,7 +125,7 @@ impl Model {
     fn run_single_batch_inference(
         batch: &[Encoding],
         max_seq_length: i64,
-        model: &mut CModule,
+        model: &CModule,
         device: Device,
     ) -> Tensor {
         let (padded_ids, attention_masks) = ModelTokenizer::build_tokens(batch, max_seq_length);

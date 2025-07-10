@@ -1,10 +1,11 @@
 use crate::enums::color::Color;
 use crate::enums::log_level::LogLevel;
-use once_cell::sync::Lazy;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::sync::{Mutex, MutexGuard};
 
+/// Logger struct to handle logging messages to a file
+#[non_exhaustive]
 pub struct Logger {
     log_file: File,
 }
@@ -35,13 +36,14 @@ impl Logger {
 }
 
 /// Static logger instance
-pub static LOGGER: Lazy<Mutex<Logger>> = Lazy::new(|| Mutex::new(Logger::new()));
+pub static LOGGER: std::sync::LazyLock<Mutex<Logger>> =
+    std::sync::LazyLock::new(|| Mutex::new(Logger::new()));
 
 /// Static logger instance
-pub fn log_and_print_message(message: &str, log_level: LogLevel) {
-    print_message(message, &log_level);
+pub fn log_and_print_message(message: &str, log_level: &LogLevel) {
+    print_message(message, log_level);
     let logger: MutexGuard<Logger> = LOGGER.lock().unwrap();
-    logger.log(&log_level, message);
+    logger.log(log_level, message);
 }
 
 pub fn log_message(message: &str, log_level: &LogLevel) {

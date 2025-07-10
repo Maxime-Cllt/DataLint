@@ -13,7 +13,7 @@ fn test_analyse_file() {
         Err(e) => {
             log_and_print_message(
                 &format!("Error loading model configuration: {e}"),
-                LogLevel::Error,
+                &LogLevel::Error,
             );
             std::process::exit(1);
         }
@@ -25,7 +25,7 @@ fn test_analyse_file() {
         Err(e) => {
             log_and_print_message(
                 &format!("Error reading CSV file: {e}"),
-                LogLevel::Error,
+                &LogLevel::Error,
             );
             std::process::exit(1);
         }
@@ -35,7 +35,7 @@ fn test_analyse_file() {
     perfage_iae.analyse_file(&csv_struct).unwrap_or_else(|e| {
         log_and_print_message(
             &format!("Error during file analysis: {e}"),
-            LogLevel::Error,
+            &LogLevel::Error,
         );
         (vec![], 42, 42)
     });

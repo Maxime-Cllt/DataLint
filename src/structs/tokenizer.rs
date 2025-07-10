@@ -6,6 +6,7 @@ use rayon::iter::ParallelIterator;
 use std::error::Error;
 use tokenizers::{Encoding, Tokenizer};
 
+#[non_exhaustive]
 pub struct ModelTokenizer;
 
 impl ModelTokenizer {
@@ -41,6 +42,8 @@ impl ModelTokenizer {
     }
 
     /// Convert the IDs from an `Encoding` into a vector of `i64` and returns the sequence length.
+    #[inline]
+    #[must_use]
     pub fn ids_to_vector(encoding: &Encoding) -> (Vec<i64>, i64) {
         let ids: &[u32] = encoding.get_ids();
         let ids: Vec<i64> = ids.par_iter().map(|&x| i64::from(x)).collect();
@@ -49,18 +52,22 @@ impl ModelTokenizer {
     }
 
     /// Build padded token IDs and attention masks from a list of `Encoding` objects.
+    #[inline]
+    #[must_use]
     pub fn build_tokens(encodings: &[Encoding], max_seq_length: i64) -> (Vec<i64>, Vec<i64>) {
         const PAD_TOKEN_ID: i64 = 0;
         let batch_size: usize = encodings.len();
-        let total_len: usize = batch_size * (max_seq_length as usize);
+        let total_len: usize = batch_size * (usize::try_from(max_seq_length).unwrap_or_default());
 
         let mut padded_ids: Vec<i64> = Vec::with_capacity(total_len);
         let mut attention_mask: Vec<i64> = Vec::with_capacity(total_len);
 
-        for encoding in encodings.iter() {
+        for encoding in encodings {
             let (ids, seq_len_i64) = Self::ids_to_vector(encoding);
-            let seq_len: usize = seq_len_i64 as usize;
-            let pad_len: usize = (max_seq_length as usize).saturating_sub(seq_len);
+            let seq_len: usize = usize::try_from(seq_len_i64).unwrap_or_default();
+            let pad_len: usize = usize::try_from(max_seq_length)
+                .unwrap_or_default()
+                .saturating_sub(seq_len);
 
             padded_ids.extend_from_slice(&ids);
             padded_ids.resize(padded_ids.len() + pad_len, PAD_TOKEN_ID);
@@ -80,6 +87,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_ids_to_vector_basic() {
+        const WORDS: [&str; 5] = ["TEST", "--", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
+
         let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
@@ -88,8 +97,6 @@ mod tests {
             );
             std::process::exit(1);
         });
-
-        const WORDS: [&str; 5] = ["TEST", "--", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
 
         for word in WORDS {
             let encoding: Encoding = tokenizer.encode(word, true).unwrap();
@@ -103,7 +110,8 @@ mod tests {
             // loop in ids and check if they ids(is) == encoding_ids(i)
             for (i, id) in ids.iter().enumerate() {
                 assert_eq!(
-                    *id as u32, encoding_ids[i],
+                    u32::try_from(*id).unwrap_or_default(),
+                    encoding_ids[i],
                     "Token ID should match the encoding ID"
                 );
             }
@@ -112,6 +120,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_encode_decode() {
+        const WORDS: [&str; 5] = ["TEST", "WORD", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
+
         let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
@@ -120,8 +130,6 @@ mod tests {
             );
             std::process::exit(1);
         });
-
-        const WORDS: [&str; 5] = ["TEST", "WORD", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
 
         for word in WORDS {
             let encoding: Encoding = tokenizer.encode(word, true).unwrap();
@@ -137,6 +145,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_encode_words() {
+        const WORDS: [&str; 5] = ["TEST", "WORD", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
+
         let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
@@ -145,8 +155,6 @@ mod tests {
             );
             std::process::exit(1);
         });
-
-        const WORDS: [&str; 5] = ["TEST", "WORD", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
 
         let batch_data: Vec<InferableValue> = WORDS
             .iter()
@@ -173,6 +181,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_token() {
+        const WORDS: [&str; 5] = ["TEST", "WORD", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
+
         let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
@@ -182,7 +192,6 @@ mod tests {
             std::process::exit(1);
         });
 
-        const WORDS: [&str; 5] = ["TEST", "WORD", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
 
         let batch_data: Vec<InferableValue> = WORDS
             .iter()
@@ -200,11 +209,11 @@ mod tests {
 
         assert_eq!(
             padded_ids.len(),
-            (batch_data.len() * max_seq_length as usize)
+            batch_data.len() * usize::try_from(max_seq_length).unwrap_or(0),
         );
         assert_eq!(
             attention_masks.len(),
-            (batch_data.len() * max_seq_length as usize)
+            batch_data.len() * usize::try_from(max_seq_length).unwrap_or(0)
         );
     }
 }

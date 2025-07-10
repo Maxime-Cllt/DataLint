@@ -12,23 +12,26 @@ pub struct Anomaly {
 impl Anomaly {
     /// Create a new instance of Anomaly
     #[inline]
+    #[must_use]
     pub const fn new(value: String, column: String, line: u32, score: f32) -> Self {
-        Anomaly {
+        Self {
             value,
             column,
-            line,
             score,
+            line,
         }
     }
 
     /// Display the anomalies in a formatted way
-    pub fn print_result(anomalie_vec: &[Anomaly]) {
-        for anomalie in anomalie_vec.iter() {
+    pub fn print_result(anomalie_vec: &[Self]) {
+        for anomalie in anomalie_vec {
             println!("{}", anomalie.as_str());
         }
     }
 
     /// Return a formatted string representation of the anomaly
+    #[inline]
+    #[must_use]
     pub fn as_str(&self) -> String {
         format!(
             "Content: {}{}{}, \nColumn: {}{}{}, \nLine: {}{}{}, \nScore: {}{}{}\n-----",
