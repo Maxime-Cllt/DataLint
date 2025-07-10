@@ -1,8 +1,8 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use datelint::enums::log_level::LogLevel;
-use datelint::structs::csv_file::CsvFile;
-use datelint::structs::logger::log_and_print_message;
-use datelint::structs::model::Model;
+use datalib::enums::log_level::LogLevel;
+use datalib::structs::csv_file::CsvFile;
+use datalib::structs::logger::log_and_print_message;
+use datalib::structs::model::Model;
 use std::time::Duration;
 
 fn test_analyse_file() {

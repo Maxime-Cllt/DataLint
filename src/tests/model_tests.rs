@@ -1,4 +1,4 @@
-use datelint::structs::model::Model;
+use datalib::structs::model::Model;
 use std::fs::File;
 use std::io::Write;
 

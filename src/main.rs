@@ -4,12 +4,12 @@ mod benches;
 #[cfg(test)]
 mod tests;
 
-use datelint::enums::log_level::LogLevel;
-use datelint::structs::anomaly::Anomaly;
-use datelint::structs::csv_file::CsvFile;
-use datelint::structs::logger::log_and_print_message;
-use datelint::structs::model::Model;
-use datelint::utils::util::{
+use datalib::enums::log_level::LogLevel;
+use datalib::structs::anomaly::Anomaly;
+use datalib::structs::csv_file::CsvFile;
+use datalib::structs::logger::log_and_print_message;
+use datalib::structs::model::Model;
+use datalib::utils::util::{
     file_exists, generate_json_file, get_file_from_args, print_report, run_post_execution,
 };
 use std::process::exit;
@@ -18,7 +18,7 @@ use std::time::Instant;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let args: [String; 2] =
-        get_file_from_args(&args).expect("Error parsing command line arguments. Usage: DateLint <csv_file> <output_file>");
+        get_file_from_args(&args).expect("Error parsing command line arguments. Usage: datalib <csv_file> <output_file>");
 
 
     let start_time: Instant = Instant::now();

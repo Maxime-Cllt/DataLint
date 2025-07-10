@@ -1,4 +1,4 @@
 {
-  "model_path": "model/traced_model.pt",
-  "vocabulary_path": "model/tokenizer.json"
+  "model_path": "C:\\Users\\HHBL8703\\PycharmProjects\\PerfageIAT\\script\\v2\\tiny\\mk4-a\\traced_model_mk4-a.pt",
+  "vocabulary_path": "C:\\Users\\HHBL8703\\PycharmProjects\\PerfageIAT\\script\\v2\\tiny\\mk4-a\\tokenizer\\tokenizer.json"
 }

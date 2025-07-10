@@ -26,7 +26,7 @@ tokio = { version = "*", features = ["macros", "rt-multi-thread", "sync"] }
 criterion = "0.6.0"
 
 [lib]
-name = "datelint"
+name = "datalib"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
