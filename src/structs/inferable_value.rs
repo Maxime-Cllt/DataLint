@@ -1,7 +1,21 @@
+#[non_exhaustive]
 pub struct InferableValue {
     pub(crate) value: String,
     pub(crate) row_number: usize,
     pub(crate) column_index: usize,
+}
+
+impl InferableValue {
+    /// Creates a new instance of `InferableValue`.
+    #[inline]
+    #[must_use]
+    pub const fn new(value: String, row_number: usize, column_index: usize) -> Self {
+        Self {
+            value,
+            row_number,
+            column_index,
+        }
+    }
 }
 
 #[cfg(test)]

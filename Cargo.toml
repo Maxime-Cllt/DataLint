@@ -1,8 +1,12 @@
 [package]
 name = "DataLint"
-version = "0.0.1"
+version = "1.0.0"
 edition = "2024"
-description = ""
+description = "A Rust executable for linting potential unsafe values in CSV files"
+license = "GPL-3"
+repository = "https://github.com/Maxime-Cllt/DataLint.git"
+categories = ["accessibility", "command-line-interface"]
+keywords = ["csv", "data-validation", "pytorch", "machine-learning", "ai"]
 authors = ["Maxime-Cllt"]
 
 
@@ -22,7 +26,7 @@ tokio = { version = "*", features = ["macros", "rt-multi-thread", "sync"] }
 criterion = "0.6.0"
 
 [lib]
-name = "datelint"
+name = "datalib"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
@@ -31,7 +35,6 @@ crate-type = ["cdylib", "rlib"]
 opt-level = 0  # No optimizations, better debugging info
 debug = true  # Generate debug info
 overflow-checks = true  # Enable overflow checks for safer code
-codegen-units = 20  # Use multiple codegen units for faster compilation
 lto = false  # Disable Link Time Optimization for faster compilation
 panic = "unwind" # Use unwind strategy to get better backtraces
 
@@ -41,7 +44,6 @@ incremental = true  # Enable incremental compilation for faster test builds
 opt-level = 1  # Optimize for speed, but not as much as release
 debug = false  # No debug info in test builds
 overflow-checks = true  # Enable overflow checks for safer code
-codegen-units = 1  # Merge codegen units for better optimization
 lto = false  # Disable Link Time Optimization for faster compilation
 
 [profile.release]

@@ -1,7 +1,7 @@
 use crate::tests::csv_tests::csv_utils::generate_csv_file;
-use datelint::structs::anomalie::Anomalie;
-use datelint::structs::json_output::JsonOutput;
-use datelint::utils::util::{file_exists, generate_json_file, get_file_from_args, get_file_name};
+use datalib::structs::anomaly::Anomaly;
+use datalib::structs::json_output::JsonOutput;
+use datalib::utils::util::{file_exists, generate_json_file, get_file_from_args, get_file_name};
 
 #[tokio::test]
 async fn test_get_file_from_args() {
@@ -54,28 +54,35 @@ async fn test_generate_json_file() {
     const ZERO: u32 = 0;
     const JSON_FILE: &str = "test_generate_json_file";
 
-    let json_response: JsonOutput = JsonOutput {
-        analysed_file: String::from("test.csv"),
-        ai_analyze: 15,
-        regex_analyze: 10,
-        time_ms : 100,
-        anomalies: vec![
-            Anomalie::new(
+    let json_response = JsonOutput::new(
+        vec![
+            Anomaly::new(
                 String::from("Danger1"),
                 String::from("Colonne1"),
                 ZERO,
                 ZERO_PROB,
             ),
-            Anomalie::new(
+            Anomaly::new(
                 String::from("Danger2"),
                 String::from("Colonne2"),
                 ZERO,
                 ZERO_PROB,
             ),
         ],
-    };
+        String::from("test.csv"),
+        15,
+        10,
+        100,
+    );
 
-    generate_json_file(json_response.anomalies.clone(), 0, 0, "test.csv", JSON_FILE, 100);
+    generate_json_file(
+        json_response.anomalies.clone(),
+        0,
+        0,
+        "test.csv",
+        JSON_FILE,
+        100,
+    );
 
     assert!(std::path::Path::new("json/test_generate_json_file.json").exists());
 
@@ -88,10 +95,10 @@ async fn test_generate_json_file() {
     assert_eq!(content.anomalies.len(), 2);
 
     for (i, anomaly) in content.anomalies.iter().enumerate() {
-        assert_eq!(anomaly.colonne, json_response.anomalies[i].colonne);
-        assert_eq!(anomaly.valeur, json_response.anomalies[i].valeur);
+        assert_eq!(anomaly.column, json_response.anomalies[i].column);
+        assert_eq!(anomaly.value, json_response.anomalies[i].value);
         assert_eq!(anomaly.score, json_response.anomalies[i].score);
-        assert_eq!(anomaly.ligne, json_response.anomalies[i].ligne);
+        assert_eq!(anomaly.line, json_response.anomalies[i].line);
     }
 
     delete_file("json/test_generate_json_file.json");

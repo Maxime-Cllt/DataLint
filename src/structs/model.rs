@@ -1,5 +1,5 @@
 use crate::enums::log_level::LogLevel;
-use crate::structs::anomalie::Anomalie;
+use crate::structs::anomaly::Anomaly;
 use crate::structs::csv_file::CsvFile;
 use crate::structs::inferable_value::InferableValue;
 use crate::structs::logger::print_message;
@@ -12,18 +12,18 @@ use tch::{CModule, Device, Tensor};
 use tokenizers::{Encoding, Tokenizer};
 
 #[derive(Deserialize)]
-pub struct PerfageModel {
+pub struct Model {
     pub model_path: String,
     pub vocabulary_path: String,
 }
 
-impl PerfageModel {
-    /// Charge un modèle PerfageModel à partir d'un fichier JSON.
+impl Model {
+    /// Load the model configuration from a JSON file and return a Model instance.
     pub fn from_config_file(json_path: &str) -> Result<Self, Box<dyn Error>> {
         let json_file: File = File::open(json_path)?;
-        let model: PerfageModel = serde_json::from_reader(json_file).unwrap_or_else(|e| {
+        let model = serde_json::from_reader(json_file).unwrap_or_else(|e| {
             print_message(
-                &format!("Erreur lors de la lecture du fichier JSON: {e}"),
+                &format!("Error reading model configuration from JSON: {e}"),
                 &LogLevel::Error,
             );
             std::process::exit(1);
@@ -32,13 +32,13 @@ impl PerfageModel {
         Ok(model)
     }
 
-    /// Initialise le modèle PerfageModel et renvoie le modèle, le périphérique et le tokenizer.
+    /// Init the model, device, and tokenizer based on the model path and vocabulary path.
     fn init_model(&self) -> Result<(CModule, Device, Tokenizer), Box<dyn Error>> {
         let device: Device = Device::cuda_if_available();
         let model: CModule =
             CModule::load_on_device(&self.model_path, device).unwrap_or_else(|e| {
                 print_message(
-                    &format!("Erreur lors de la lecture du modèle: {e}"),
+                    &format!("Error loading model: {e}"),
                     &LogLevel::Error,
                 );
                 std::process::exit(1);
@@ -47,16 +47,16 @@ impl PerfageModel {
         Ok((model, device, tokenizer))
     }
 
-    /// Analyse un fichier CSV à l'aide du modèle PyTorch et renvoie une liste d'anomalies détectées.
+    /// Analyse a CSV file and return a tuple containing the detected anomalies,
     pub fn analyse_file(
         &self,
         csv_file_struct: &CsvFile,
-    ) -> Result<(Vec<Anomalie>, u32, u32), Box<dyn Error>> {
-        let mut regex_analyze: u32 = 0; // Les valeurs valides analysées par regex
-        let mut ai_analyze: u32 = 0; // Les valeurs analysées par le modèle
+    ) -> Result<(Vec<Anomaly>, u32, u32), Box<dyn Error>> {
+        let mut regex_analyze: u32 = 0;
+        let mut ai_analyze: u32 = 0;
 
         let batch_data: Vec<InferableValue> =
-            csv_file_struct.collect_unsafe_value(csv_file_struct, &mut regex_analyze)?; // Collecter toutes les données CSV
+            csv_file_struct.collect_unsafe_value(csv_file_struct, &mut regex_analyze)?;
 
         if batch_data.is_empty() {
             return Ok((Vec::new(), ai_analyze, regex_analyze));
@@ -64,13 +64,12 @@ impl PerfageModel {
 
         let (mut model, device, tokenizer): (CModule, Device, Tokenizer) = self.init_model()?;
 
-        // Encoder les données de lot en utilisant le tokenizer.
         let (encodings, max_seq_length) = ModelTokenizer::encode_words(&tokenizer, &batch_data);
 
         let predictions: Tensor =
             Self::run_sigmoid_inference_batched(&encodings, max_seq_length, &mut model, device);
 
-        let anomalies: Vec<Anomalie> = Self::process_output(
+        let anomalies: Vec<Anomaly> = Self::process_output(
             &batch_data,
             &predictions,
             &csv_file_struct.get_headers()?,
@@ -80,13 +79,13 @@ impl PerfageModel {
         Ok((anomalies, ai_analyze, regex_analyze))
     }
 
-    fn forward(model: &mut CModule, input_ids: Tensor, attention_mask: Tensor) -> Tensor {
+    fn forward(model: &CModule, input_ids: Tensor, attention_mask: Tensor) -> Tensor {
         let output: Tensor = tch::no_grad(|| {
             model
                 .forward_ts(&[input_ids, attention_mask])
                 .unwrap_or_else(|e| {
                     print_message(
-                        &format!("Erreur lors de l'inférence du modèle: {e}"),
+                        &format!("Error during model inference: {e}"),
                         &LogLevel::Error,
                     );
                     std::process::exit(1);
@@ -96,7 +95,7 @@ impl PerfageModel {
         output
     }
 
-    /// Exécute l'inférence du modèle par lots sur les encodages et renvoie les prédictions.
+    /// Execute the inference in batches using sigmoid activation.
     fn run_sigmoid_inference_batched(
         encodings: &[Encoding],
         max_seq_length: i64,
@@ -122,11 +121,11 @@ impl PerfageModel {
         Tensor::cat(&all_outputs, 0).sigmoid()
     }
 
-    /// Traite un seul lot d'encodages pour l'inférence.
+    /// Run inference for a single batch of encodings.
     fn run_single_batch_inference(
         batch: &[Encoding],
         max_seq_length: i64,
-        model: &mut CModule,
+        model: &CModule,
         device: Device,
     ) -> Tensor {
         let (padded_ids, attention_masks) = ModelTokenizer::build_tokens(batch, max_seq_length);
@@ -143,15 +142,15 @@ impl PerfageModel {
         Self::forward(model, input_ids, attention_mask)
     }
 
-    /// Extrait les anomalies à partir des données de lot et des prédictions (score > 0.8 uniquement).
+    /// Extract anomalies from the model's predictions and batch data.
     fn process_output(
         batch_data: &[InferableValue],
         predictions: &Tensor,
         headers: &StringRecord,
         ai_analyze: &mut u32,
-    ) -> Vec<Anomalie> {
+    ) -> Vec<Anomaly> {
         const THRESHOLD: f64 = 0.8;
-        let mut anomalies: Vec<Anomalie> = Vec::new();
+        let mut anomalies: Vec<Anomaly> = Vec::new();
 
         // Get prediction scores as a 1D vector
         let scores = predictions.select(1, 1).iter::<f64>().unwrap();
@@ -165,7 +164,7 @@ impl PerfageModel {
                         headers.get(data.column_index).unwrap_or("unknown").into();
                     let row_number: u32 = u32::try_from(data.row_number + 2).unwrap_or(u32::MAX);
 
-                    anomalies.push(Anomalie::new(
+                    anomalies.push(Anomaly::new(
                         data.value.clone(),
                         column_name,
                         row_number,

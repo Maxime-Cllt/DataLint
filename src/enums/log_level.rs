@@ -5,11 +5,13 @@ pub enum LogLevel {
 }
 
 impl LogLevel {
-    /// Retourne la chaîne de caractères associée au niveau de log
-    pub fn as_str(&self) -> &'static str {
+    /// Return a string representation of the log level
+    #[inline]
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
         match self {
-            LogLevel::Error => "ERROR",
-            LogLevel::Info => "INFO",
+            Self::Error => "ERROR",
+            Self::Info => "INFO",
         }
     }
 }
