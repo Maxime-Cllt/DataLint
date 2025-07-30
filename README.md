@@ -180,12 +180,18 @@ To build DataLint from source, ensure you have Rust and Cargo installed, then ru
 cargo build --release
 ```
 
-## 🧪 Testing
+## 🧪 Testing and Benchmarking available
 
 Run the test suite to ensure everything is functioning correctly:
 
 ```bash
 cargo test
+```
+
+And to benchmark performance:
+
+```bash
+cargo bench
 ```
 
 ## 🤝 Contributing
@@ -199,22 +205,3 @@ cargo test
 ## 📄 License
 
 This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 Related Projects
-
-- **Perfage**: The main application server that utilizes DataLint
-- **PyTorch**: The underlying machine learning framework
-
-## 📞 Support
-
-For questions, issues, or feature requests, please:
-
-- Open an issue on GitHub
-- Contact the development team
-- Check the documentation wiki
-
----
-
-<p align="center">
-  Made with 🦀
-</p>
