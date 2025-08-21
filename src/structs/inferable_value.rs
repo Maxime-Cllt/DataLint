@@ -1,3 +1,4 @@
+/// This module defines the `InferableValue` struct, which represents a value that can be inferred
 #[non_exhaustive]
 pub struct InferableValue {
     pub(crate) value: String,

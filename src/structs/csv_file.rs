@@ -15,9 +15,10 @@ use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 
+/// Represents a CSV file with its path and separator.
 pub struct CsvFile {
     pub csv_file_path: String,
-    pub separator: u8,
+    pub separator: u8, // The separator used in the CSV file, represented as a byte like b',', b';', etc.
 }
 
 impl CsvFile {
@@ -113,13 +114,13 @@ impl CsvFile {
     pub fn convert_file_to_utf8(input_path: &str) -> Result<String, Box<dyn Error>> {
         const UTF8: &str = "utf8";
 
-        if !std::path::Path::new(UTF8).exists() {
-            if let Err(e) = std::fs::create_dir(UTF8) {
-                log_and_print_message(
-                    &format!("Error creating 'utf8' directory: {e}"),
-                    &LogLevel::Error,
-                );
-            }
+        if !std::path::Path::new(UTF8).exists()
+            && let Err(e) = std::fs::create_dir(UTF8)
+        {
+            log_and_print_message(
+                &format!("Error creating 'utf8' directory: {e}"),
+                &LogLevel::Error,
+            );
         }
 
         let encoded_file_name: String = format!("utf8/{}_utf8.csv", get_file_name(input_path));
