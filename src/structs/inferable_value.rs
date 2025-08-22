@@ -1,8 +1,8 @@
 #[non_exhaustive]
 pub struct InferableValue {
-    pub(crate) value: String,
-    pub(crate) row_number: usize,
-    pub(crate) column_index: usize,
+    pub value: String,
+    pub row_number: usize,
+    pub column_index: usize,
 }
 
 impl InferableValue {

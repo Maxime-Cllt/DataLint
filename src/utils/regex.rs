@@ -35,14 +35,14 @@ pub mod safe_regex {
     #[inline]
     #[must_use]
     pub fn get_simple_word_regex() -> Regex {
-        Regex::new(r"^[A-Za-z]+$").unwrap()
+        Regex::new("^[A-Za-z]+$").unwrap()
     }
 
     /// Phone number pattern, allowing for international formats
     #[inline]
     #[must_use]
     pub fn get_phone_number_regex() -> Regex {
-        Regex::new(r"[+]?[0-9]{1,2}").unwrap()
+        Regex::new("[+]?[0-9]{1,2}").unwrap()
     }
 
     #[cfg(test)]
@@ -204,8 +204,14 @@ pub mod usafe_regex {
 
         #[tokio::test]
         async fn test_illegal_char_regex() {
-            let regex = illegal_char_regex();
-            let regex: Regex = Regex::new(regex).unwrap();
+            let regex_str = illegal_char_regex();
+            let regex: Regex = Regex::new(regex_str)
+                .map_err(|e| {
+                    println!("Failed to create regex: {}", e);
+                    e
+
+                })
+                .unwrap();
             const ILLEGAL_CHARS: [&str; 5] = [
                 "@#$%^&*()",
                 "<script>",

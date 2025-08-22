@@ -93,7 +93,7 @@ impl CsvFile {
 
         let file: File = File::open(file_path)?;
         let mut reader: BufReader<File> = BufReader::new(file);
-        let mut buffer: Vec<u8> = vec![0u8; CHUNK_SIZE];
+        let mut buffer: Vec<u8> = vec![0_u8; CHUNK_SIZE];
 
         while let Ok(bytes_read) = reader.read(&mut buffer) {
             if bytes_read == 0 {
