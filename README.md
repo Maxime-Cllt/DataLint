@@ -180,15 +180,15 @@ To build DataLint from source, ensure you have Rust and Cargo installed, then ru
 cargo build --release
 ```
 
-## 🧪 Testing and Benchmarking available
+## 🧪 Code quality
 
-Run the test suite to ensure everything is functioning correctly:
+### Unit Tests available the `tests` directory is tested using the `cargo test` command. To run tests, use:
 
 ```bash
 cargo test
 ```
 
-And to benchmark performance:
+### Benchmarking is benchmarked using the `criterion` crate. To run benchmarks, use:
 
 ```bash
 cargo bench

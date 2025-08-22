@@ -12,6 +12,8 @@ pub struct Logger {
 
 impl Logger {
     /// Create a new Logger instance
+    #[inline]
+    #[must_use]
     fn new() -> Self {
         let log_file: File = std::fs::OpenOptions::new()
             .create(true)

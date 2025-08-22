@@ -2,6 +2,8 @@ use crate::structs::anomaly::Anomaly;
 
 use serde::{Deserialize, Serialize};
 
+/// Represents the output of the JSON analysis, containing details about the analysed file,
+/// the AI and regex analysis scores, the time taken for the analysis, and a list of anomalies detected.
 #[derive(Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct JsonOutput {

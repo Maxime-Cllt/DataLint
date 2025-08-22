@@ -1,7 +1,9 @@
 use crate::enums::color::Color;
 use serde::{Deserialize, Serialize};
 
+/// Represents an anomaly detected in a CSV file.
 #[derive(Serialize, Deserialize, Clone)]
+#[non_exhaustive]
 pub struct Anomaly {
     pub value: String,
     pub column: String,

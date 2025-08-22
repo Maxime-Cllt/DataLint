@@ -17,16 +17,16 @@ pub fn generate_json_file(
     time_ms: u128,
 ) {
     const JSON_DIR: &str = "json";
-    if !std::path::Path::new(JSON_DIR).exists() {
-        if let Err(e) = std::fs::create_dir(JSON_DIR) {
-            log_and_print_message(
-                format!(
-                    "Error while creating the JSON directory: {e}. Please create the directory manually at: {JSON_DIR}"
-                )
-                    .as_str(),
-                &LogLevel::Error,
-            );
-        }
+    if !std::path::Path::new(JSON_DIR).exists()
+        && let Err(e) = std::fs::create_dir(JSON_DIR)
+    {
+        log_and_print_message(
+            format!(
+                "Error while creating the JSON directory: {e}. Please create the directory manually at: {JSON_DIR}"
+            )
+                .as_str(),
+            &LogLevel::Error,
+        );
     }
 
     let binding: PathBuf = std::env::current_dir().unwrap_or_else(|e| {
