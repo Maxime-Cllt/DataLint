@@ -60,19 +60,49 @@ jobs:
             C:\libtorch
           key: ${{ runner.os }}-${{ matrix.target }}-cargo-libtorch-${{ hashFiles('**/Cargo.lock') }}-${{ env.LIBTORCH_VERSION }}
 
-      # Linux libtorch setup
-      - name: Setup libtorch (Linux)
+      # Linux libtorch setup with explicit linker configuration
+      - name: Setup libtorch (Linux) - Alternative
         if: matrix.os == 'ubuntu-latest'
         run: |
-          if [ ! -d "/tmp/libtorch" ]; then
-            sudo apt-get update && sudo apt-get install -y wget unzip build-essential cmake
-            cd /tmp
-            wget -q ${{ matrix.libtorch_url }} -O libtorch.zip
-            unzip -q libtorch.zip
-          fi
-          sudo cp -r /tmp/libtorch /usr/local/ || true
+          sudo apt-get update
+          sudo apt-get install -y wget unzip build-essential cmake pkg-config
+
+          # Download and extract libtorch
+          cd /tmp
+          wget -q ${{ matrix.libtorch_url }} -O libtorch.zip
+          unzip -q libtorch.zip
+
+          # Move to system location
+          sudo mv libtorch /usr/local/
+
+          # Create pkg-config file for libtorch
+          sudo mkdir -p /usr/local/lib/pkgconfig
+          sudo tee /usr/local/lib/pkgconfig/libtorch.pc > /dev/null <<EOF
+          prefix=/usr/local/libtorch
+          exec_prefix=\${prefix}
+          libdir=\${exec_prefix}/lib
+          includedir=\${prefix}/include
+
+          Name: libtorch
+          Description: PyTorch C++ Library
+          Version: ${{ env.LIBTORCH_VERSION }}
+          Libs: -L\${libdir} -ltorch -ltorch_cpu -lc10
+          Cflags: -I\${includedir}
+          EOF
+
+          # Update ldconfig
+          echo "/usr/local/libtorch/lib" | sudo tee /etc/ld.so.conf.d/libtorch.conf
+          sudo ldconfig
+
+          # Set environment variables
           echo "LIBTORCH=/usr/local/libtorch" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=/usr/local/libtorch/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "LIBRARY_PATH=/usr/local/libtorch/lib:$LIBRARY_PATH" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+
+          # Verify
+          pkg-config --exists libtorch && echo "pkg-config found libtorch" || echo "pkg-config missing libtorch"
+          ldconfig -p | grep torch
 
       # Windows libtorch setup
       - name: Setup libtorch (Windows)
@@ -91,7 +121,6 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           if [ ! -d "/tmp/libtorch" ]; then
-            brew install wget
             cd /tmp
             wget -q ${{ matrix.libtorch_url }} -O libtorch.zip
             unzip -q libtorch.zip
