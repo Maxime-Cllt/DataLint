@@ -2,7 +2,7 @@ name: Rust CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "fix-gha" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -21,20 +21,31 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy, rust-src
+
+      - name: Verify Rust installation
+        run: |
+          rustc --version
+          cargo --version
+          rustup show
 
       - name: Cache cargo registry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip build-essential cmake
+          sudo apt-get install -y wget unzip build-essential cmake pkg-config
 
       - name: Download and install libtorch
         run: |
@@ -50,12 +61,25 @@ jobs:
           ls -la /usr/local/libtorch/
           ls -la /usr/local/libtorch/lib/
 
-      - name: Build
+      - name: Clean cargo cache (if needed)
+        run: |
+          cargo clean
+
+      - name: Update cargo index
+        run: cargo update
+
+      - name: Check Cargo.toml
+        run: |
+          echo "Checking Cargo.toml for potential issues..."
+          cat Cargo.toml
+
+      - name: Build with verbose output
         run: cargo build --verbose
         env:
           LIBTORCH: /usr/local/libtorch
           LD_LIBRARY_PATH: /usr/local/libtorch/lib
           LIBTORCH_BYPASS_VERSION_CHECK: 1
+          RUST_BACKTRACE: 1
 
       - name: Run tests
         run: cargo test --verbose
@@ -63,3 +87,4 @@ jobs:
           LIBTORCH: /usr/local/libtorch
           LD_LIBRARY_PATH: /usr/local/libtorch/lib
           LIBTORCH_BYPASS_VERSION_CHECK: 1
+          RUST_BACKTRACE: 1
