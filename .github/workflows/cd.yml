@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    tags: ['v*']
+    tags: [ 'v*' ]
   workflow_dispatch:
     inputs:
       version:
@@ -21,6 +21,7 @@ env:
   CARGO_TERM_COLOR: always
   LIBTORCH_VERSION: 2.7.1
   LIBTORCH_CXX11_ABI: 1
+  LIBTORCH_BYPASS_VERSION_CHECK: 1
 
 jobs:
   build-and-release:
@@ -90,7 +91,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           if [ ! -d "/tmp/libtorch" ]; then
-            brew install wget cmake
+            brew install wget
             cd /tmp
             wget -q ${{ matrix.libtorch_url }} -O libtorch.zip
             unzip -q libtorch.zip
