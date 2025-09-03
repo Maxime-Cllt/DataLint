@@ -48,7 +48,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          brew install cmake wget
+          brew install wget
 
       - name: Setup libtorch
         run: |
