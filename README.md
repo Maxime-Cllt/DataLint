@@ -12,8 +12,10 @@
 
 ## 🚀 Overview
 
-**DataLint** is a production-ready machine learning model designed for the **Perfage** application server. Built with
-Rust for optimal performance, it provides powerful CSV file validation capabilities by detecting erroneous, malicious,
+**DataLint** is a production-ready machine learning model designed to prevent the ingestion of erroneous or malicious
+data in CSV files.
+Built with Rust for optimal performance, it provides powerful CSV file validation capabilities by detecting erroneous,
+malicious,
 or anomalous data patterns using advanced AI techniques.
 
 ### ✨ Key Features
@@ -182,13 +184,15 @@ cargo build --release
 
 ## 🧪 Code quality
 
-### Unit Tests available the `tests` directory is tested using the `cargo test` command. To run tests, use:
+### Unit Tests available
 
 ```bash
 cargo test
 ```
 
-### Benchmarking is benchmarked using the `criterion` crate. To run benchmarks, use:
+### Benchmarking available
+
+The performance of key functions is  benchmarked using the `criterion` crate. To run benchmarks, use:
 
 ```bash
 cargo bench
