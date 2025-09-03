@@ -1,4 +1,4 @@
-name: Rust CI
+name: Rust CI (Debug)
 
 on:
   push:
@@ -10,27 +10,31 @@ on:
 env:
   CARGO_TERM_COLOR: always
   LIBTORCH_VERSION: 2.7.1
-  LIBTORCH_CXX11_ABI: 1
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust
+      - name: Install Rust with specific version
         uses: dtolnay/rust-toolchain@stable
         with:
+          # Try a specific known-good version if stable is problematic
+          toolchain: 1.75.0
           components: rustfmt, clippy, rust-src
 
-      - name: Verify Rust installation
+      - name: Debug Rust environment
         run: |
-          rustc --version
+          rustc --version --verbose
           cargo --version
           rustup show
+          rustup component list --installed
+          echo "Proc macro support:"
+          rustc --print target-list | grep $(rustc -vV | sed -n 's/host: //p')
 
-      - name: Cache cargo registry
+      - name: Cache cargo
         uses: actions/cache@v4
         with:
           path: |
@@ -38,53 +42,57 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-v2
           restore-keys: |
             ${{ runner.os }}-cargo-
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip build-essential cmake pkg-config
+          brew install cmake wget
 
-      - name: Download and install libtorch
+      - name: Setup libtorch
         run: |
           cd /tmp
-          wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}%2Bcpu.zip
-          unzip libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}+cpu.zip
+          # Detect architecture and download appropriate libtorch
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            LIBTORCH_URL="https://download.pytorch.org/libtorch/cpu/libtorch-macos-arm64-${LIBTORCH_VERSION}.zip"
+          else
+            LIBTORCH_URL="https://download.pytorch.org/libtorch/cpu/libtorch-macos-x86_64-${LIBTORCH_VERSION}.zip"
+          fi
+          
+          echo "Downloading libtorch for $ARCH from $LIBTORCH_URL"
+          wget "$LIBTORCH_URL" -O libtorch.zip
+          unzip libtorch.zip
           sudo mv libtorch /usr/local/
+          
           echo "LIBTORCH=/usr/local/libtorch" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=/usr/local/libtorch/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=/usr/local/libtorch/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
 
-      - name: Verify libtorch installation
-        run: |
-          ls -la /usr/local/libtorch/
-          ls -la /usr/local/libtorch/lib/
-
-      - name: Clean cargo cache (if needed)
+      - name: Force clean build
         run: |
           cargo clean
+          rm -rf ~/.cargo/registry/cache/
+          cargo update
 
-      - name: Update cargo index
-        run: cargo update
-
-      - name: Check Cargo.toml
+      - name: Try building specific problematic crate first
         run: |
-          echo "Checking Cargo.toml for potential issues..."
-          cat Cargo.toml
+          echo "Attempting to build darling_macro specifically..."
+          cargo build -p darling_macro --verbose || echo "darling_macro build failed, continuing..."
 
-      - name: Build with verbose output
-        run: cargo build --verbose
+      - name: Build with maximum debugging
+        run: |
+          export RUST_LOG=debug
+          export RUST_BACKTRACE=full
+          cargo build --verbose
         env:
           LIBTORCH: /usr/local/libtorch
-          LD_LIBRARY_PATH: /usr/local/libtorch/lib
+          DYLD_LIBRARY_PATH: /usr/local/libtorch/lib
           LIBTORCH_BYPASS_VERSION_CHECK: 1
-          RUST_BACKTRACE: 1
 
       - name: Run tests
         run: cargo test --verbose
         env:
           LIBTORCH: /usr/local/libtorch
-          LD_LIBRARY_PATH: /usr/local/libtorch/lib
+          DYLD_LIBRARY_PATH: /usr/local/libtorch/lib
           LIBTORCH_BYPASS_VERSION_CHECK: 1
-          RUST_BACKTRACE: 1
