@@ -184,7 +184,9 @@ cargo build --release
 
 ## 🧪 Code quality
 
-### Unit Tests available
+### Unit Tests available 
+
+The `tests` directory is tested using the command :
 
 ```bash
 cargo test
@@ -192,7 +194,7 @@ cargo test
 
 ### Benchmarking available
 
-The performance of key functions is  benchmarked using the `criterion` crate. To run benchmarks, use:
+Code is benchmarked using the `criterion` crate. To run benchmarks, use:
 
 ```bash
 cargo bench

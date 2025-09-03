@@ -154,7 +154,7 @@ mod tests {
                 &format!("Error reading vocabulary file: {e}"),
                 &LogLevel::Error,
             );
-            std::process::exit(1);
+            panic!("Failed to load tokenizer");
         });
 
         let batch_data: Vec<InferableValue> = WORDS
