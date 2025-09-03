@@ -22,7 +22,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # Try a specific known-good version if stable is problematic
-          toolchain: 1.75.0
+          toolchain: 1.89.0
           components: rustfmt, clippy, rust-src
 
       - name: Debug Rust environment
