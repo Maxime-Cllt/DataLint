@@ -11,6 +11,10 @@ use std::fs::File;
 use tch::{CModule, Device, Tensor};
 use tokenizers::{Encoding, Tokenizer};
 
+/// Represents the model configuration for the anomaly detection system.
+/// It contains the paths to the model and vocabulary files.
+/// The model is used for inference, while the vocabulary is used for tokenization.
+/// The model is expected to be a PyTorch model, and the vocabulary is expected to be a tokenizer configuration file.
 #[derive(Deserialize)]
 pub struct Model {
     pub model_path: String,
@@ -37,10 +41,7 @@ impl Model {
         let device: Device = Device::cuda_if_available();
         let model: CModule =
             CModule::load_on_device(&self.model_path, device).unwrap_or_else(|e| {
-                print_message(
-                    &format!("Error loading model: {e}"),
-                    &LogLevel::Error,
-                );
+                print_message(&format!("Error loading model: {e}"), &LogLevel::Error);
                 std::process::exit(1);
             });
         let tokenizer: Tokenizer = ModelTokenizer::from_config_file(&self.vocabulary_path)?;
@@ -48,6 +49,7 @@ impl Model {
     }
 
     /// Analyse a CSV file and return a tuple containing the detected anomalies,
+    /// the number of AI analyses performed, and the number of regex analyses performed.
     pub fn analyse_file(
         &self,
         csv_file_struct: &CsvFile,
@@ -79,6 +81,7 @@ impl Model {
         Ok((anomalies, ai_analyze, regex_analyze))
     }
 
+    /// Forward pass through the model with input IDs and attention mask.
     fn forward(model: &CModule, input_ids: Tensor, attention_mask: Tensor) -> Tensor {
         let output: Tensor = tch::no_grad(|| {
             model
@@ -114,7 +117,8 @@ impl Model {
         let mut all_outputs: Vec<Tensor> = Vec::new();
 
         for batch in encodings.chunks(MAX_BATCH_SIZE) {
-            let output:Tensor = Self::run_single_batch_inference(batch, max_seq_length, model, device);
+            let output: Tensor =
+                Self::run_single_batch_inference(batch, max_seq_length, model, device);
             all_outputs.push(output);
         }
 
@@ -158,19 +162,19 @@ impl Model {
         for (i, score) in scores.enumerate() {
             *ai_analyze += 1;
 
-            if score > THRESHOLD {
-                if let Some(data) = batch_data.get(i) {
-                    let column_name: String =
-                        headers.get(data.column_index).unwrap_or("unknown").into();
-                    let row_number: u32 = u32::try_from(data.row_number + 2).unwrap_or(u32::MAX);
+            // Check if the score exceeds the threshold and if the corresponding data exists
+            if score > THRESHOLD && let Some(data) = batch_data.get(i)
+            {
+                let column_name: String =
+                    headers.get(data.column_index).unwrap_or("unknown").into();
+                let row_number: u32 = u32::try_from(data.row_number + 2).unwrap_or(u32::MAX);
 
-                    anomalies.push(Anomaly::new(
-                        data.value.clone(),
-                        column_name,
-                        row_number,
-                        score as f32,
-                    ));
-                }
+                anomalies.push(Anomaly::new(
+                    data.value.clone(),
+                    column_name,
+                    row_number,
+                    score as f32,
+                ));
             }
         }
 

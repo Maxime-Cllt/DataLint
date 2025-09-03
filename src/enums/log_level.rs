@@ -1,4 +1,6 @@
+/// Represents the log level for a message.
 #[derive(Debug)]
+#[repr(u8)]
 pub enum LogLevel {
     Error,
     Info,

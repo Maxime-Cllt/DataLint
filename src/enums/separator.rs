@@ -1,4 +1,6 @@
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[repr(u8)]
+/// An enumeration representing different types of separators used in CSV files.
 pub enum SeparatorType {
     Comma,
     Semicolon,
@@ -9,7 +11,6 @@ pub enum SeparatorType {
 }
 
 impl SeparatorType {
-
     /// Returns the separator as a `char`.
     #[inline]
     #[must_use]
@@ -26,6 +27,7 @@ impl SeparatorType {
 }
 
 impl From<SeparatorType> for u8 {
+    /// Converts the `SeparatorType` to its corresponding byte value.
     fn from(separator: SeparatorType) -> Self {
         match separator {
             SeparatorType::Comma => b',',
@@ -89,5 +91,15 @@ mod test {
         assert_eq!(pipe, SeparatorType::Pipe);
         assert_eq!(null, SeparatorType::Null);
         assert_eq!(invalid, SeparatorType::Invalid);
+    }
+
+    #[tokio::test]
+    async fn test_separator_enum_debug() {
+        assert_eq!(format!("{:?}", SeparatorType::Comma), "Comma");
+        assert_eq!(format!("{:?}", SeparatorType::Semicolon), "Semicolon");
+        assert_eq!(format!("{:?}", SeparatorType::Tab), "Tab");
+        assert_eq!(format!("{:?}", SeparatorType::Pipe), "Pipe");
+        assert_eq!(format!("{:?}", SeparatorType::Null), "Null");
+        assert_eq!(format!("{:?}", SeparatorType::Invalid), "Invalid");
     }
 }

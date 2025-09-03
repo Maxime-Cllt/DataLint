@@ -6,6 +6,7 @@ use rayon::iter::ParallelIterator;
 use std::error::Error;
 use tokenizers::{Encoding, Tokenizer};
 
+/// Represents a tokenizer for the model, providing methods to encode and decode text data.
 #[non_exhaustive]
 pub struct ModelTokenizer;
 
@@ -153,7 +154,7 @@ mod tests {
                 &format!("Error reading vocabulary file: {e}"),
                 &LogLevel::Error,
             );
-            std::process::exit(1);
+            panic!("Failed to load tokenizer");
         });
 
         let batch_data: Vec<InferableValue> = WORDS
@@ -191,7 +192,6 @@ mod tests {
             );
             std::process::exit(1);
         });
-
 
         let batch_data: Vec<InferableValue> = WORDS
             .iter()

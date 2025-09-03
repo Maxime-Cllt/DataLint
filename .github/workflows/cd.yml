@@ -1,0 +1,129 @@
+name: "Build & Release"
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: "Version (e.g. v2024.12.25)"
+        required: true
+      publish:
+        type: boolean
+        description: "Publish release"
+        default: true
+
+env:
+  CARGO_TERM_COLOR: always
+  LIBTORCH_VERSION: 2.7.1
+  LIBTORCH_CXX11_ABI: 1
+
+jobs:
+  build-and-release:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip" }
+
+          # Windows
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.7.1%2Bcpu.zip" }
+
+          # macOS
+          - { os: macos-latest, target: x86_64-apple-darwin, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.7.1.zip" }
+          - { os: macos-latest, target: aarch64-apple-darwin, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.7.1.zip" }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo and libtorch
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+            /tmp/libtorch
+            C:\libtorch
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-libtorch-${{ hashFiles('**/Cargo.lock') }}-${{ env.LIBTORCH_VERSION }}
+
+      # Linux libtorch setup
+      - name: Setup libtorch (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          if [ ! -d "/tmp/libtorch" ]; then
+            sudo apt-get update && sudo apt-get install -y wget unzip build-essential cmake
+            cd /tmp
+            wget -q ${{ matrix.libtorch_url }} -O libtorch.zip
+            unzip -q libtorch.zip
+          fi
+          sudo cp -r /tmp/libtorch /usr/local/ || true
+          echo "LIBTORCH=/usr/local/libtorch" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=/usr/local/libtorch/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      # Windows libtorch setup
+      - name: Setup libtorch (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          if (!(Test-Path "C:\libtorch")) {
+            Invoke-WebRequest -Uri "${{ matrix.libtorch_url }}" -OutFile "libtorch.zip"
+            Expand-Archive -Path "libtorch.zip" -DestinationPath "C:\" -Force
+          }
+          echo "LIBTORCH=C:\libtorch" >> $env:GITHUB_ENV
+          echo "LIBTORCH_LIB=C:\libtorch\lib" >> $env:GITHUB_ENV
+
+      # macOS libtorch setup
+      - name: Setup libtorch (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          if [ ! -d "/tmp/libtorch" ]; then
+            brew install wget cmake
+            cd /tmp
+            wget -q ${{ matrix.libtorch_url }} -O libtorch.zip
+            unzip -q libtorch.zip
+          fi
+          sudo cp -r /tmp/libtorch /usr/local/ || true
+          echo "LIBTORCH=/usr/local/libtorch" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=/usr/local/libtorch/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Build binary
+        run: cargo build --release --target ${{ matrix.target }}
+        env:
+          LIBTORCH: ${{ env.LIBTORCH }}
+
+      - name: Prepare binary name
+        id: binary
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            echo "name=DataLint-${{ matrix.target }}.exe" >> $GITHUB_OUTPUT
+            echo "path=target/${{ matrix.target }}/release/DataLint.exe" >> $GITHUB_OUTPUT
+          else
+            echo "name=DataLint-${{ matrix.target }}" >> $GITHUB_OUTPUT
+            echo "path=target/${{ matrix.target }}/release/DataLint" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          name: Release ${{ github.event.inputs.version || github.ref_name }}
+          draft: false
+          prerelease: false
+          files: ${{ steps.binary.outputs.path }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

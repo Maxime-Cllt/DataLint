@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+/// An enumeration representing different colors for terminal output.
+#[repr(u8)]
 pub enum Color {
     Red,
     Green,

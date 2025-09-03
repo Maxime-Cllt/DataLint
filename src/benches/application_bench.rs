@@ -5,8 +5,9 @@ use datalib::structs::logger::log_and_print_message;
 use datalib::structs::model::Model;
 use std::time::Duration;
 
+#[allow(dead_code)]
 fn test_analyse_file() {
-    let filepath = r"";
+    const FILEPATH: &str = r""; // Path to the CSV file to be analyzed
 
     let perfage_iae: Model = match Model::from_config_file("config.json") {
         Ok(perfage) => perfage,
@@ -20,13 +21,10 @@ fn test_analyse_file() {
     };
 
     // Structure de données représentant le fichier CSV à analyser
-    let csv_struct: CsvFile = match CsvFile::from_file(filepath) {
+    let csv_struct: CsvFile = match CsvFile::from_file(FILEPATH) {
         Ok(csv) => csv,
         Err(e) => {
-            log_and_print_message(
-                &format!("Error reading CSV file: {e}"),
-                &LogLevel::Error,
-            );
+            log_and_print_message(&format!("Error reading CSV file: {e}"), &LogLevel::Error);
             std::process::exit(1);
         }
     };
@@ -41,6 +39,7 @@ fn test_analyse_file() {
     });
 }
 
+#[allow(dead_code)]
 fn benchmark_application(c: &mut Criterion) {
     let mut group = c.benchmark_group("benchmark_application");
 
