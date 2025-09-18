@@ -2,9 +2,20 @@ name: Rust CI (Debug)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" , "master" ]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE*'
+      - '.gitignore'
+      - '.github/dependabot.yml'
+      - 'assets/**'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main" , "master" ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.github/dependabot.yml'
+      - 'assets/**'
   workflow_dispatch:
 
 env:
