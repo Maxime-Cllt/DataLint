@@ -3,8 +3,6 @@ use crate::detection::inferable_value::InferableValue;
 use crate::core::utils::regex::{get_safe_regex_set, get_unsafe_value_regex_set};
 use crate::core::utils::util::get_file_name;
 use csv::{Reader, ReaderBuilder, StringRecord};
-use rayon::iter::IntoParallelRefIterator;
-use rayon::prelude::ParallelIterator;
 use regex::RegexSet;
 use std::borrow::Cow;
 use std::collections::HashSet;
@@ -48,9 +46,10 @@ impl CsvFile {
 
         let first_line: String = Self::read_first_line(csv_file_path).unwrap();
 
+        // Use sequential iteration for small array (6 elements) - faster than parallel overhead
         POSSIBLE_SEPARATORS
-            .par_iter()
-            .find_any(|sep| first_line.contains(sep.as_char()))
+            .iter()
+            .find(|sep| first_line.contains(sep.as_char()))
             .cloned()
             .ok_or_else(|| {
                 io::Error::new(
@@ -202,10 +201,12 @@ impl CsvFile {
             .has_headers(true)
             .from_reader(csv_file);
 
-        let safe_regex_set: RegexSet = get_safe_regex_set(); // Regex for safe values
-        let unsafe_regex_set: RegexSet = get_unsafe_value_regex_set(); // Regex for unsafe values
+        let safe_regex_set: &RegexSet = get_safe_regex_set(); // Cached regex for safe values
+        let unsafe_regex_set: &RegexSet = get_unsafe_value_regex_set(); // Cached regex for unsafe values
         let mut seen_words: HashSet<String> = HashSet::new(); // Store seen words to avoid duplicates
-        let mut batch_data: Vec<InferableValue> = Vec::new();
+
+        // Pre-allocate with reasonable default to avoid initial reallocations
+        let mut batch_data: Vec<InferableValue> = Vec::with_capacity(1000);
 
         for (row_number, record) in rdr.records().enumerate() {
             let record: StringRecord = match record {

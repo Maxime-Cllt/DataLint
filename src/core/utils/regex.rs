@@ -2,47 +2,74 @@ use crate::core::utils::regex::safe_regex::{
     get_datetime_regex, get_email_regex, get_numeric_regex, get_phone_number_regex,
     get_simple_word_regex,
 };
+use once_cell::sync::Lazy;
 use regex::RegexSet;
 
 pub mod safe_regex {
+    use once_cell::sync::Lazy;
     use regex::Regex;
 
     /// Date and time pattern, supporting various formats
-    #[inline]
-    #[must_use]
-    pub fn get_datetime_regex() -> Regex {
+    static DATETIME_REGEX: Lazy<Regex> = Lazy::new(|| {
         Regex::new(
             r"(?i)\b(?:\d{4}[-/]\d{2}[-/]\d{2}|\d{2}[-/]\d{2}[-/]\d{4})\s?(?:\d{2}[:]\d{2}[:]\d{2})?\b",
         )
-            .unwrap()
-    }
+        .unwrap()
+    });
 
     /// Numeric pattern, allowing for integers and decimals with optional signs
-    #[inline]
-    #[must_use]
-    pub fn get_numeric_regex() -> Regex {
+    static NUMERIC_REGEX: Lazy<Regex> = Lazy::new(|| {
         Regex::new(r"^[-.]?\d+([.,]\d*)?\s*$").unwrap()
-    }
+    });
 
     /// Email pattern, case-insensitive, allowing for common email formats
-    #[inline]
-    #[must_use]
-    pub fn get_email_regex() -> Regex {
+    static EMAIL_REGEX: Lazy<Regex> = Lazy::new(|| {
         Regex::new(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Za-z]{2,}\b").unwrap()
-    }
+    });
 
     /// Simple word pattern, allowing only letters (case-insensitive)
-    #[inline]
-    #[must_use]
-    pub fn get_simple_word_regex() -> Regex {
+    static SIMPLE_WORD_REGEX: Lazy<Regex> = Lazy::new(|| {
         Regex::new("^[A-Za-z]+$").unwrap()
-    }
+    });
 
     /// Phone number pattern, allowing for international formats
+    static PHONE_NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| {
+        Regex::new("[+]?[0-9]{1,2}").unwrap()
+    });
+
+    /// Get the cached datetime regex
     #[inline]
     #[must_use]
-    pub fn get_phone_number_regex() -> Regex {
-        Regex::new("[+]?[0-9]{1,2}").unwrap()
+    pub fn get_datetime_regex() -> &'static Regex {
+        &DATETIME_REGEX
+    }
+
+    /// Get the cached numeric regex
+    #[inline]
+    #[must_use]
+    pub fn get_numeric_regex() -> &'static Regex {
+        &NUMERIC_REGEX
+    }
+
+    /// Get the cached email regex
+    #[inline]
+    #[must_use]
+    pub fn get_email_regex() -> &'static Regex {
+        &EMAIL_REGEX
+    }
+
+    /// Get the cached simple word regex
+    #[inline]
+    #[must_use]
+    pub fn get_simple_word_regex() -> &'static Regex {
+        &SIMPLE_WORD_REGEX
+    }
+
+    /// Get the cached phone number regex
+    #[inline]
+    #[must_use]
+    pub fn get_phone_number_regex() -> &'static Regex {
+        &PHONE_NUMBER_REGEX
     }
 
     #[cfg(test)]
@@ -64,7 +91,7 @@ pub mod safe_regex {
                 "03-02-2024 00:00:00",
                 "03/02/2024 07:45:30",
             ];
-            let regex: Regex = get_datetime_regex();
+            let regex: &Regex = get_datetime_regex();
             for date in &VALID_DATES {
                 assert!(regex.is_match(date), "Erreur sur: {date}");
             }
@@ -73,7 +100,7 @@ pub mod safe_regex {
         #[tokio::test]
         async fn test_invalid_dates() {
             const INVALID_DATES: [&str; 3] = ["random text", "not a date", "is it a date?"];
-            let regex: Regex = get_datetime_regex();
+            let regex: &Regex = get_datetime_regex();
 
             for date in &INVALID_DATES {
                 assert!(!regex.is_match(date), "Erreur sur: {date}");
@@ -97,7 +124,7 @@ pub mod safe_regex {
                 "-4645464664.6515",
             ];
 
-            let regex: Regex = get_numeric_regex();
+            let regex: &Regex = get_numeric_regex();
 
             for num in &VALID_NUMBERS {
                 assert!(regex.is_match(num), "Erreur sur: {num}");
@@ -106,7 +133,7 @@ pub mod safe_regex {
 
         #[tokio::test]
         async fn test_invalid_numbers() {
-            let regex: Regex = get_numeric_regex();
+            let regex: &Regex = get_numeric_regex();
             const INVALID_NUMBERS: [&str; 8] = [
                 "abc", "123abc", "--3.14", "3..14", "3,14,15", "..5", "az4a4z6", "0.0.0",
             ];
@@ -126,7 +153,7 @@ pub mod safe_regex {
                 "a@b.io",
             ];
 
-            let regex: Regex = get_email_regex();
+            let regex: &Regex = get_email_regex();
 
             for email in &VALID_EMAILS {
                 assert!(regex.is_match(email), "Erreur sur: {email}");
@@ -144,7 +171,7 @@ pub mod safe_regex {
                 "user domain.com",
             ];
 
-            let regex: Regex = get_email_regex();
+            let regex: &Regex = get_email_regex();
 
             for email in &INVALID_EMAILS {
                 assert!(!regex.is_match(email), "Erreur sur: {email}");
@@ -162,7 +189,7 @@ pub mod safe_regex {
                 "NUMERI:",
             ];
 
-            let regex: Regex = get_simple_word_regex();
+            let regex: &Regex = get_simple_word_regex();
 
             for email in &VALID_WORD {
                 assert!(!regex.is_match(email), "Erreur sur: {email}");
@@ -227,10 +254,8 @@ pub mod usafe_regex {
     }
 }
 
-/// Return a `RegexSet` for unsafe values
-#[inline]
-#[must_use]
-pub fn get_safe_regex_set() -> RegexSet {
+/// Cached RegexSet for safe values
+static SAFE_REGEX_SET: Lazy<RegexSet> = Lazy::new(|| {
     RegexSet::new([
         get_numeric_regex().as_str(),
         get_datetime_regex().as_str(),
@@ -239,15 +264,27 @@ pub fn get_safe_regex_set() -> RegexSet {
         get_phone_number_regex().as_str(),
     ])
     .unwrap()
-}
+});
 
-/// Return a `RegexSet` for unsafe values
-#[inline]
-#[must_use]
-pub fn get_unsafe_value_regex_set() -> RegexSet {
+/// Cached RegexSet for unsafe values
+static UNSAFE_VALUE_REGEX_SET: Lazy<RegexSet> = Lazy::new(|| {
     RegexSet::new([
         usafe_regex::sql_keyword_regex(),
         usafe_regex::illegal_char_regex(),
     ])
     .unwrap()
+});
+
+/// Return a reference to the cached `RegexSet` for safe values
+#[inline]
+#[must_use]
+pub fn get_safe_regex_set() -> &'static RegexSet {
+    &SAFE_REGEX_SET
+}
+
+/// Return a reference to the cached `RegexSet` for unsafe values
+#[inline]
+#[must_use]
+pub fn get_unsafe_value_regex_set() -> &'static RegexSet {
+    &UNSAFE_VALUE_REGEX_SET
 }

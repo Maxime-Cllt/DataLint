@@ -30,7 +30,7 @@ impl ModelTokenizer {
     ) -> (Vec<Encoding>, i64) {
         let encodings: Vec<Encoding> = batch_data
             .iter()
-            .map(|data| tokenizer.encode(data.value.clone(), true).unwrap())
+            .map(|data| tokenizer.encode(data.value.as_str(), true).unwrap())
             .collect();
 
         let max_seq_length: i64 = encodings
@@ -46,8 +46,14 @@ impl ModelTokenizer {
     #[inline]
     #[must_use]
     pub fn ids_to_vector(encoding: &Encoding) -> (Vec<i64>, i64) {
+        const PARALLEL_THRESHOLD: usize = 1000;
         let ids: &[u32] = encoding.get_ids();
-        let ids: Vec<i64> = ids.par_iter().map(|&x| i64::from(x)).collect();
+        // Use parallel iteration only for large sequences to avoid overhead
+        let ids: Vec<i64> = if ids.len() > PARALLEL_THRESHOLD {
+            ids.par_iter().map(|&x| i64::from(x)).collect()
+        } else {
+            ids.iter().map(|&x| i64::from(x)).collect()
+        };
         let seq_length: i64 = i64::try_from(ids.len()).unwrap_or(i64::MAX);
         (ids, seq_length)
     }
