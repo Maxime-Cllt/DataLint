@@ -118,7 +118,7 @@ impl Model {
         model: &mut CModule,
         device: Device,
     ) -> Tensor {
-        const MAX_BATCH_SIZE: usize = 32;
+        const MAX_BATCH_SIZE: usize = 512;  // Increased from 32 for better GPU utilization
         model.set_eval();
 
         // Fast path for small batches (optional performance boost)
@@ -271,7 +271,7 @@ impl InitializedModel {
         model: &mut CModule,
         device: Device,
     ) -> Tensor {
-        const MAX_BATCH_SIZE: usize = 32;
+        const MAX_BATCH_SIZE: usize = 512;  // Increased from 32 for better GPU utilization
         model.set_eval();
 
         // Fast path for small batches (optional performance boost)

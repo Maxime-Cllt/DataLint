@@ -28,8 +28,9 @@ impl ModelTokenizer {
         tokenizer: &Tokenizer,
         batch_data: &[InferableValue],
     ) -> (Vec<Encoding>, i64) {
+        // Use parallel iteration for tokenization (CPU-bound operation)
         let encodings: Vec<Encoding> = batch_data
-            .iter()
+            .par_iter()
             .map(|data| tokenizer.encode(data.value.as_str(), true).unwrap())
             .collect();
 

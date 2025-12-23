@@ -1,6 +1,6 @@
 [package]
 name = "DataLint"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 description = "A Rust executable for linting potential unsafe values in CSV files"
 license = "GPL-3"
