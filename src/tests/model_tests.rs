@@ -1,4 +1,4 @@
-use datalib::structs::model::Model;
+use datalib::model::model::Model;
 use std::fs::File;
 use std::io::Write;
 

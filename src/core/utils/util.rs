@@ -1,11 +1,11 @@
-use crate::enums::color::Color;
-use crate::enums::log_level::LogLevel;
-use crate::structs::anomaly::Anomaly;
-use crate::structs::json_output::JsonOutput;
-use crate::structs::logger::{log_and_print_message, log_message, print_message};
+use crate::core::io::tracing::log_level::LogLevel;
+use crate::detection::anomaly::Anomaly;
+use crate::core::io::file::json_output::JsonOutput;
 use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use std::time::Instant;
+use crate::core::io::tracing::color::Color;
+use crate::core::io::tracing::logger::{log_and_print_message, log_message, print_message};
 
 /// Create a JSON file with the analysis results.
 pub fn generate_json_file(
@@ -34,7 +34,7 @@ pub fn generate_json_file(
             format!("Error while getting the current directory: {e}").as_str(),
             &LogLevel::Error,
         );
-        std::path::PathBuf::from(".")
+        std::path::PathBuf::from("../../..")
     });
     let current_dir: &str = binding.to_str().unwrap();
     let save_path: String = format!("{JSON_DIR}/{output_file_name}.{JSON_DIR}");

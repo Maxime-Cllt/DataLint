@@ -1,13 +1,13 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use datalib::enums::log_level::LogLevel;
-use datalib::structs::csv_file::CsvFile;
-use datalib::structs::logger::log_and_print_message;
-use datalib::structs::model::Model;
+use datalib::core::io::file::csv_file::CsvFile;
+use datalib::model::model::Model;
 use std::time::Duration;
+use datalib::core::io::tracing::log_level::LogLevel;
+use datalib::core::io::tracing::logger::log_and_print_message;
 
 #[allow(dead_code)]
 fn test_analyse_file() {
-    const FILEPATH: &str = r""; // Path to the CSV file to be analyzed
+    const FILEPATH: &str = r"/Users/maximecolliat/RustroverProjects/DataLint/Amazon.csv"; // Path to the CSV file to be analyzed
 
     let perfage_iae: Model = match Model::from_config_file("config.json") {
         Ok(perfage) => perfage,

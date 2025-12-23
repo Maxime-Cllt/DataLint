@@ -1,4 +1,4 @@
-use crate::utils::regex::safe_regex::{
+use crate::core::utils::regex::safe_regex::{
     get_datetime_regex, get_email_regex, get_numeric_regex, get_phone_number_regex,
     get_simple_word_regex,
 };
@@ -47,7 +47,7 @@ pub mod safe_regex {
 
     #[cfg(test)]
     mod test {
-        use crate::utils::regex::safe_regex::{
+        use crate::core::utils::regex::safe_regex::{
             get_datetime_regex, get_email_regex, get_numeric_regex, get_simple_word_regex,
         };
         use regex::Regex;

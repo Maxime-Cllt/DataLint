@@ -1,9 +1,7 @@
-use crate::enums::log_level::LogLevel;
-use crate::enums::separator::SeparatorType;
-use crate::structs::inferable_value::InferableValue;
-use crate::structs::logger::{log_and_print_message, print_message};
-use crate::utils::regex::{get_safe_regex_set, get_unsafe_value_regex_set};
-use crate::utils::util::get_file_name;
+
+use crate::detection::inferable_value::InferableValue;
+use crate::core::utils::regex::{get_safe_regex_set, get_unsafe_value_regex_set};
+use crate::core::utils::util::get_file_name;
 use csv::{Reader, ReaderBuilder, StringRecord};
 use rayon::iter::IntoParallelRefIterator;
 use rayon::prelude::ParallelIterator;
@@ -14,6 +12,9 @@ use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
+use crate::core::io::file::separator::SeparatorType;
+use crate::core::io::tracing::log_level::LogLevel;
+use crate::core::io::tracing::logger::{log_and_print_message, print_message};
 
 /// Represents a CSV file with its path and separator.
 pub struct CsvFile {

@@ -1,7 +1,7 @@
 use crate::tests::csv_tests::csv_utils::generate_csv_file;
 use crate::tests::utils_tests::delete_file;
 use csv::StringRecord;
-use datalib::structs::csv_file::CsvFile;
+use datalib::core::io::file::csv_file::CsvFile;
 
 #[tokio::test]
 async fn test_get_headers() {

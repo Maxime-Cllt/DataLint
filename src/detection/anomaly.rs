@@ -1,5 +1,5 @@
-use crate::enums::color::Color;
 use serde::{Deserialize, Serialize};
+use crate::core::io::tracing::color::Color;
 
 /// Represents an anomaly detected in a CSV file.
 #[derive(Serialize, Deserialize, Clone)]

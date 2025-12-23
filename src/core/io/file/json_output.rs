@@ -1,4 +1,4 @@
-use crate::structs::anomaly::Anomaly;
+use crate::detection::anomaly::Anomaly;
 
 use serde::{Deserialize, Serialize};
 

@@ -14,7 +14,7 @@ impl SeparatorType {
     /// Returns the separator as a `char`.
     #[inline]
     #[must_use]
-    pub(crate) const fn as_char(&self) -> char {
+    pub const fn as_char(&self) -> char {
         match self {
             Self::Comma => ',',
             Self::Semicolon => ';',

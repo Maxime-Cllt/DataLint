@@ -1,10 +1,10 @@
-use crate::enums::log_level::LogLevel;
-use crate::structs::inferable_value::InferableValue;
-use crate::structs::logger::print_message;
+use crate::detection::inferable_value::InferableValue;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::error::Error;
 use tokenizers::{Encoding, Tokenizer};
+use crate::core::io::tracing::log_level::LogLevel;
+use crate::core::io::tracing::logger::print_message;
 
 /// Represents a tokenizer for the model, providing methods to encode and decode text data.
 #[non_exhaustive]
@@ -90,7 +90,7 @@ mod tests {
     async fn test_ids_to_vector_basic() {
         const WORDS: [&str; 5] = ["TEST", "--", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
 
-        let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
+        let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
                 &format!("Error reading vocabulary file: {e}"),

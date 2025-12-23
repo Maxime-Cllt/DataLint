@@ -1,15 +1,15 @@
-use crate::enums::log_level::LogLevel;
-use crate::structs::anomaly::Anomaly;
-use crate::structs::csv_file::CsvFile;
-use crate::structs::inferable_value::InferableValue;
-use crate::structs::logger::print_message;
-use crate::structs::tokenizer::ModelTokenizer;
+use crate::core::io::tracing::log_level::LogLevel;
+use crate::detection::anomaly::Anomaly;
+use crate::core::io::file::csv_file::CsvFile;
+use crate::detection::inferable_value::InferableValue;
+use crate::model::tokenizer::ModelTokenizer;
 use csv::StringRecord;
 use serde::Deserialize;
 use std::error::Error;
 use std::fs::File;
 use tch::{CModule, Device, Tensor};
 use tokenizers::{Encoding, Tokenizer};
+use crate::core::io::tracing::logger::print_message;
 
 /// Represents the model configuration for the anomaly detection system.
 /// It contains the paths to the model and vocabulary files.

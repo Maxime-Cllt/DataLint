@@ -1,8 +1,9 @@
-use crate::enums::color::Color;
-use crate::enums::log_level::LogLevel;
+
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::sync::{Mutex, MutexGuard};
+use crate::core::io::tracing::color::Color;
+use crate::core::io::tracing::log_level::LogLevel;
 
 /// Logger struct to handle logging messages to a file
 #[non_exhaustive]
@@ -18,7 +19,7 @@ impl Logger {
         let log_file: File = std::fs::OpenOptions::new()
             .create(true)
             .append(true)
-            .open("DataLint.log")
+            .open("../../DataLint.log")
             .unwrap();
 
         Self { log_file }
