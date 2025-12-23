@@ -1,3 +1,8 @@
+[env]
+LIBTORCH_USE_PYTORCH = "1"
+LIBTORCH_BYPASS_VERSION_CHECK = "1"
+DYLD_LIBRARY_PATH = "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/lib"
+
 [build]
 rustflags = [
     "-C", "target-feature=+crt-static",
@@ -31,4 +36,5 @@ rustflags = [
     "-C", "target-cpu=apple-m1",
     "-C", "link-arg=-dead_strip",
     "-C", "link-arg=-dead_strip_dylibs",
+    "-C", "link-arg=-Wl,-rpath,/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/lib",
 ]

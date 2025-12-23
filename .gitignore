@@ -22,3 +22,5 @@ target/
 *.log
 
 .idea
+*.csv
+*.json
