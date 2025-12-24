@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use datalib::core::io::file::csv_file::CsvFile;
-use datalib::model::model::Model;
+use datalib::model::Model;
 use std::time::Duration;
 use datalib::core::io::tracing::log_level::LogLevel;
 use datalib::core::io::tracing::logger::log_and_print_message;

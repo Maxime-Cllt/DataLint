@@ -35,6 +35,10 @@ impl JsonOutput {
     }
 
     /// Save the `JsonOutput` to a file in pretty JSON format
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if JSON serialization fails or file writing fails.
     pub fn save_to_file(&self, file_path: &str) -> std::io::Result<()> {
         let json_data: String = serde_json::to_string_pretty(self)?;
         std::fs::write(file_path, json_data)

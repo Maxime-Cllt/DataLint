@@ -12,6 +12,10 @@ pub struct ModelTokenizer;
 
 impl ModelTokenizer {
     /// Load the tokenizer from a configuration file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the tokenizer file cannot be loaded or is invalid.
     pub fn from_config_file(file_path: &str) -> Result<Tokenizer, Box<dyn Error>> {
         let tokenizer: Tokenizer = Tokenizer::from_file(file_path).unwrap_or_else(|e| {
             print_message(
@@ -24,6 +28,10 @@ impl ModelTokenizer {
     }
 
     /// Encode the words from a batch of `InferableValue` into a vector of `Encoding` and returns the maximum sequence length.
+    ///
+    /// # Panics
+    ///
+    /// Panics if tokenization fails for any value in the batch.
     pub fn encode_words(
         tokenizer: &Tokenizer,
         batch_data: &[InferableValue],
@@ -34,11 +42,13 @@ impl ModelTokenizer {
             .map(|data| tokenizer.encode(data.value.as_str(), true).unwrap())
             .collect();
 
-        let max_seq_length: i64 = encodings
-            .iter()
-            .map(|e| e.get_ids().len())
-            .max()
-            .unwrap_or(0) as i64;
+        let max_seq_length: i64 = i64::try_from(
+            encodings
+                .iter()
+                .map(|e| e.get_ids().len())
+                .max()
+                .unwrap_or(0)
+        ).unwrap_or(i64::MAX);
 
         (encodings, max_seq_length)
     }

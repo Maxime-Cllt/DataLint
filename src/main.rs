@@ -6,7 +6,7 @@ mod tests;
 
 use datalib::detection::anomaly::Anomaly;
 use datalib::core::io::file::csv_file::CsvFile;
-use datalib::model::model::InitializedModel;
+use datalib::model::InitializedModel;
 use datalib::core::io::tracing::log_level::LogLevel;
 use datalib::core::io::tracing::logger::log_and_print_message;
 use datalib::core::utils::util::{

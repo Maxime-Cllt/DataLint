@@ -2,15 +2,15 @@ use crate::core::utils::regex::safe_regex::{
     get_datetime_regex, get_email_regex, get_numeric_regex, get_phone_number_regex,
     get_simple_word_regex,
 };
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use regex::RegexSet;
 
 pub mod safe_regex {
-    use once_cell::sync::Lazy;
+    use std::sync::LazyLock;
     use regex::Regex;
 
     /// Date and time pattern, supporting various formats
-    static DATETIME_REGEX: Lazy<Regex> = Lazy::new(|| {
+    static DATETIME_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(
             r"(?i)\b(?:\d{4}[-/]\d{2}[-/]\d{2}|\d{2}[-/]\d{2}[-/]\d{4})\s?(?:\d{2}[:]\d{2}[:]\d{2})?\b",
         )
@@ -18,22 +18,22 @@ pub mod safe_regex {
     });
 
     /// Numeric pattern, allowing for integers and decimals with optional signs
-    static NUMERIC_REGEX: Lazy<Regex> = Lazy::new(|| {
+    static NUMERIC_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"^[-.]?\d+([.,]\d*)?\s*$").unwrap()
     });
 
     /// Email pattern, case-insensitive, allowing for common email formats
-    static EMAIL_REGEX: Lazy<Regex> = Lazy::new(|| {
+    static EMAIL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Za-z]{2,}\b").unwrap()
     });
 
     /// Simple word pattern, allowing only letters (case-insensitive)
-    static SIMPLE_WORD_REGEX: Lazy<Regex> = Lazy::new(|| {
+    static SIMPLE_WORD_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new("^[A-Za-z]+$").unwrap()
     });
 
     /// Phone number pattern, allowing for international formats
-    static PHONE_NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| {
+    static PHONE_NUMBER_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new("[+]?[0-9]{1,2}").unwrap()
     });
 
@@ -254,8 +254,8 @@ pub mod usafe_regex {
     }
 }
 
-/// Cached RegexSet for safe values
-static SAFE_REGEX_SET: Lazy<RegexSet> = Lazy::new(|| {
+/// Cached `RegexSet` for safe values
+static SAFE_REGEX_SET: LazyLock<RegexSet> = LazyLock::new(|| {
     RegexSet::new([
         get_numeric_regex().as_str(),
         get_datetime_regex().as_str(),
@@ -266,8 +266,8 @@ static SAFE_REGEX_SET: Lazy<RegexSet> = Lazy::new(|| {
     .unwrap()
 });
 
-/// Cached RegexSet for unsafe values
-static UNSAFE_VALUE_REGEX_SET: Lazy<RegexSet> = Lazy::new(|| {
+/// Cached `RegexSet` for unsafe values
+static UNSAFE_VALUE_REGEX_SET: LazyLock<RegexSet> = LazyLock::new(|| {
     RegexSet::new([
         usafe_regex::sql_keyword_regex(),
         usafe_regex::illegal_char_regex(),

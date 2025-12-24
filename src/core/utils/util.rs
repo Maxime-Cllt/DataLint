@@ -8,6 +8,10 @@ use crate::core::io::tracing::color::Color;
 use crate::core::io::tracing::logger::{log_and_print_message, log_message, print_message};
 
 /// Create a JSON file with the analysis results.
+///
+/// # Panics
+///
+/// Panics if the current directory path contains invalid UTF-8.
 pub fn generate_json_file(
     dangerous_output: Vec<Anomaly>,
     regex_analyze: u32,
@@ -70,6 +74,10 @@ pub fn generate_json_file(
 }
 
 /// Get the CSV file path and output JSON file name from command line arguments.
+///
+/// # Errors
+///
+/// Returns an error if the number of arguments is not exactly 2.
 pub fn get_file_from_args(args: &[String]) -> Result<[String; 2], Error> {
     if args.len() != 3 {
         return Err(Error::new(
@@ -173,6 +181,10 @@ pub fn run_post_execution(file_path: &str) {
 }
 
 /// Extract the file name without the extension from a given file path.
+///
+/// # Panics
+///
+/// Panics if the file path is empty (though this should never happen in practice).
 #[inline]
 #[must_use]
 pub fn get_file_name(file_path: &str) -> &str {
