@@ -20,7 +20,7 @@ impl LogLevel {
 
 #[cfg(test)]
 mod tests {
-    use crate::enums::log_level::LogLevel;
+    use crate::core::io::tracing::log_level::LogLevel;
 
     #[tokio::test]
     async fn test_log_level_as_str() {
@@ -32,5 +32,11 @@ mod tests {
     async fn test_log_level_debug() {
         assert_eq!(format!("{:?}", LogLevel::Error), "Error");
         assert_eq!(format!("{:?}", LogLevel::Info), "Info");
+    }
+
+    #[tokio::test]
+    async fn test_log_level_repr() {
+        assert_eq!(LogLevel::Error as u8, 0);
+        assert_eq!(LogLevel::Info as u8, 1);
     }
 }

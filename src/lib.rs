@@ -1,3 +1,4 @@
-pub mod enums;
-pub mod structs;
-pub mod utils;
+pub mod detection;
+pub mod model;
+
+pub mod core;

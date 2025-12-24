@@ -1,10 +1,10 @@
-use crate::enums::log_level::LogLevel;
-use crate::structs::inferable_value::InferableValue;
-use crate::structs::logger::print_message;
+use crate::detection::inferable_value::InferableValue;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::error::Error;
 use tokenizers::{Encoding, Tokenizer};
+use crate::core::io::tracing::log_level::LogLevel;
+use crate::core::io::tracing::logger::print_message;
 
 /// Represents a tokenizer for the model, providing methods to encode and decode text data.
 #[non_exhaustive]
@@ -12,6 +12,10 @@ pub struct ModelTokenizer;
 
 impl ModelTokenizer {
     /// Load the tokenizer from a configuration file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the tokenizer file cannot be loaded or is invalid.
     pub fn from_config_file(file_path: &str) -> Result<Tokenizer, Box<dyn Error>> {
         let tokenizer: Tokenizer = Tokenizer::from_file(file_path).unwrap_or_else(|e| {
             print_message(
@@ -24,20 +28,27 @@ impl ModelTokenizer {
     }
 
     /// Encode the words from a batch of `InferableValue` into a vector of `Encoding` and returns the maximum sequence length.
+    ///
+    /// # Panics
+    ///
+    /// Panics if tokenization fails for any value in the batch.
     pub fn encode_words(
         tokenizer: &Tokenizer,
         batch_data: &[InferableValue],
     ) -> (Vec<Encoding>, i64) {
+        // Use parallel iteration for tokenization (CPU-bound operation)
         let encodings: Vec<Encoding> = batch_data
-            .iter()
-            .map(|data| tokenizer.encode(data.value.clone(), true).unwrap())
+            .par_iter()
+            .map(|data| tokenizer.encode(data.value.as_str(), true).unwrap())
             .collect();
 
-        let max_seq_length: i64 = encodings
-            .iter()
-            .map(|e| e.get_ids().len())
-            .max()
-            .unwrap_or(0) as i64;
+        let max_seq_length: i64 = i64::try_from(
+            encodings
+                .iter()
+                .map(|e| e.get_ids().len())
+                .max()
+                .unwrap_or(0)
+        ).unwrap_or(i64::MAX);
 
         (encodings, max_seq_length)
     }
@@ -46,8 +57,14 @@ impl ModelTokenizer {
     #[inline]
     #[must_use]
     pub fn ids_to_vector(encoding: &Encoding) -> (Vec<i64>, i64) {
+        const PARALLEL_THRESHOLD: usize = 1000;
         let ids: &[u32] = encoding.get_ids();
-        let ids: Vec<i64> = ids.par_iter().map(|&x| i64::from(x)).collect();
+        // Use parallel iteration only for large sequences to avoid overhead
+        let ids: Vec<i64> = if ids.len() > PARALLEL_THRESHOLD {
+            ids.par_iter().map(|&x| i64::from(x)).collect()
+        } else {
+            ids.iter().map(|&x| i64::from(x)).collect()
+        };
         let seq_length: i64 = i64::try_from(ids.len()).unwrap_or(i64::MAX);
         (ids, seq_length)
     }
@@ -90,7 +107,7 @@ mod tests {
     async fn test_ids_to_vector_basic() {
         const WORDS: [&str; 5] = ["TEST", "--", "IN", "", "RUST IS FUN BUT WINDOWS IS NOT"];
 
-        let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("model/tokenizer.json");
+        let path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../model/tokenizer.json");
         let tokenizer: Tokenizer = Tokenizer::from_file(path).unwrap_or_else(|e| {
             print_message(
                 &format!("Error reading vocabulary file: {e}"),

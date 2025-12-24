@@ -1,8 +1,9 @@
-use crate::enums::color::Color;
-use crate::enums::log_level::LogLevel;
+
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::sync::{Mutex, MutexGuard};
+use crate::core::io::tracing::color::Color;
+use crate::core::io::tracing::log_level::LogLevel;
 
 /// Logger struct to handle logging messages to a file
 #[non_exhaustive]
@@ -18,7 +19,7 @@ impl Logger {
         let log_file: File = std::fs::OpenOptions::new()
             .create(true)
             .append(true)
-            .open("DataLint.log")
+            .open("../../DataLint.log")
             .unwrap();
 
         Self { log_file }
@@ -41,13 +42,22 @@ impl Logger {
 pub static LOGGER: std::sync::LazyLock<Mutex<Logger>> =
     std::sync::LazyLock::new(|| Mutex::new(Logger::new()));
 
-/// Static logger instance
+/// Log a message and print it to the console.
+///
+/// # Panics
+///
+/// Panics if the logger mutex is poisoned.
 pub fn log_and_print_message(message: &str, log_level: &LogLevel) {
     print_message(message, log_level);
     let logger: MutexGuard<Logger> = LOGGER.lock().unwrap();
     logger.log(log_level, message);
 }
 
+/// Log a message without printing to console.
+///
+/// # Panics
+///
+/// Panics if the logger mutex is poisoned.
 pub fn log_message(message: &str, log_level: &LogLevel) {
     let logger: MutexGuard<Logger> = LOGGER.lock().unwrap();
     logger.log(log_level, message);

@@ -19,7 +19,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  LIBTORCH_VERSION: 2.7.1
+  LIBTORCH_VERSION: 2.9.1
   LIBTORCH_CXX11_ABI: 1
   LIBTORCH_BYPASS_VERSION_CHECK: 1
 
@@ -32,14 +32,14 @@ jobs:
       matrix:
         include:
           # Linux
-          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip" }
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.9.1%2Bcpu.zip" }
 
           # Windows
-          - { os: windows-latest, target: x86_64-pc-windows-msvc, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.7.1%2Bcpu.zip" }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.9.1%2Bcpu.zip" }
 
           # macOS
-          - { os: macos-latest, target: x86_64-apple-darwin, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.7.1.zip" }
-          - { os: macos-latest, target: aarch64-apple-darwin, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.7.1.zip" }
+          - { os: macos-latest, target: x86_64-apple-darwin, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.9.1.zip" }
+          - { os: macos-latest, target: aarch64-apple-darwin, libtorch_url: "https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.9.1.zip" }
 
     steps:
       - uses: actions/checkout@v4

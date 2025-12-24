@@ -1,12 +1,8 @@
-use crate::enums::log_level::LogLevel;
-use crate::enums::separator::SeparatorType;
-use crate::structs::inferable_value::InferableValue;
-use crate::structs::logger::{log_and_print_message, print_message};
-use crate::utils::regex::{get_safe_regex_set, get_unsafe_value_regex_set};
-use crate::utils::util::get_file_name;
+
+use crate::detection::inferable_value::InferableValue;
+use crate::core::utils::regex::{get_safe_regex_set, get_unsafe_value_regex_set};
+use crate::core::utils::util::get_file_name;
 use csv::{Reader, ReaderBuilder, StringRecord};
-use rayon::iter::IntoParallelRefIterator;
-use rayon::prelude::ParallelIterator;
 use regex::RegexSet;
 use std::borrow::Cow;
 use std::collections::HashSet;
@@ -14,6 +10,9 @@ use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
+use crate::core::io::file::separator::SeparatorType;
+use crate::core::io::tracing::log_level::LogLevel;
+use crate::core::io::tracing::logger::{log_and_print_message, print_message};
 
 /// Represents a CSV file with its path and separator.
 pub struct CsvFile {
@@ -33,6 +32,10 @@ impl CsvFile {
     }
 
     /// Return the separator as a char.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the file cannot be read or no valid separator is found.
     #[inline]
     #[must_use]
     pub fn find_separator_in_file(csv_file_path: &str) -> SeparatorType {
@@ -47,9 +50,10 @@ impl CsvFile {
 
         let first_line: String = Self::read_first_line(csv_file_path).unwrap();
 
+        // Use sequential iteration for small array (6 elements) - faster than parallel overhead
         POSSIBLE_SEPARATORS
-            .par_iter()
-            .find_any(|sep| first_line.contains(sep.as_char()))
+            .iter()
+            .find(|sep| first_line.contains(sep.as_char()))
             .cloned()
             .ok_or_else(|| {
                 io::Error::new(
@@ -61,6 +65,10 @@ impl CsvFile {
     }
 
     /// Return the headers of the CSV file as a `StringRecord`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be read.
     pub fn get_headers(&self) -> Result<StringRecord, Box<dyn Error>> {
         let binding: String = Self::read_first_line(&self.csv_file_path)?;
         let first_line: &str = binding.trim();
@@ -71,6 +79,10 @@ impl CsvFile {
     }
 
     /// Read the first line of a file and return it as a String.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be opened or read, or if the file is empty.
     #[inline]
     pub fn read_first_line(file_path: &str) -> io::Result<String> {
         let file: File = File::open(file_path)?;
@@ -88,6 +100,10 @@ impl CsvFile {
     }
 
     /// Check if a file is encoded in UTF-8.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be opened or read.
     #[inline]
     pub fn is_file_utf8(file_path: &str) -> Result<bool, Box<dyn Error>> {
         const CHUNK_SIZE: usize = 16 * 1024; // 16 KB
@@ -110,6 +126,10 @@ impl CsvFile {
     }
 
     /// Convert a file to UTF-8 encoding and save it in the "utf8" directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if file operations fail (open, read, write).
     #[inline]
     pub fn convert_file_to_utf8(input_path: &str) -> Result<String, Box<dyn Error>> {
         const UTF8: &str = "utf8";
@@ -149,6 +169,10 @@ impl CsvFile {
     }
 
     /// Create a `CsvFile` instance from a file path, checking its encoding and separator.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if file encoding check fails, UTF-8 conversion fails, or separator detection fails.
     pub fn from_file(csv_file_path: &str) -> Result<Self, Box<dyn Error>> {
         let is_utf8: bool = Self::is_file_utf8(csv_file_path).map_err(|e| {
             log_and_print_message(
@@ -158,7 +182,9 @@ impl CsvFile {
             e
         })?;
 
-        let csv_file_path: String = if !is_utf8 {
+        let csv_file_path: String = if is_utf8 {
+            String::from(csv_file_path)
+        } else {
             Self::convert_file_to_utf8(csv_file_path).map_err(|e| {
                 log_and_print_message(
                     &format!("Error converting file to UTF-8: {e}"),
@@ -166,8 +192,6 @@ impl CsvFile {
                 );
                 e
             })?
-        } else {
-            String::from(csv_file_path)
         };
 
         let separator: u8 = u8::from(match Self::find_separator_in_file(&csv_file_path) {
@@ -189,6 +213,10 @@ impl CsvFile {
     }
 
     /// Collect unsafe values from the CSV file based on regex patterns.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the CSV file cannot be opened or read.
     #[inline]
     pub fn collect_unsafe_value(
         &self,
@@ -201,10 +229,12 @@ impl CsvFile {
             .has_headers(true)
             .from_reader(csv_file);
 
-        let safe_regex_set: RegexSet = get_safe_regex_set(); // Regex for safe values
-        let unsafe_regex_set: RegexSet = get_unsafe_value_regex_set(); // Regex for unsafe values
+        let safe_regex_set: &RegexSet = get_safe_regex_set(); // Cached regex for safe values
+        let unsafe_regex_set: &RegexSet = get_unsafe_value_regex_set(); // Cached regex for unsafe values
         let mut seen_words: HashSet<String> = HashSet::new(); // Store seen words to avoid duplicates
-        let mut batch_data: Vec<InferableValue> = Vec::new();
+
+        // Pre-allocate with reasonable default to avoid initial reallocations
+        let mut batch_data: Vec<InferableValue> = Vec::with_capacity(1000);
 
         for (row_number, record) in rdr.records().enumerate() {
             let record: StringRecord = match record {

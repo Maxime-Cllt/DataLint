@@ -1,7 +1,7 @@
 use crate::tests::csv_tests::csv_utils::generate_csv_file;
-use datalib::structs::anomaly::Anomaly;
-use datalib::structs::json_output::JsonOutput;
-use datalib::utils::util::{file_exists, generate_json_file, get_file_from_args, get_file_name};
+use datalib::detection::anomaly::Anomaly;
+use datalib::core::io::file::json_output::JsonOutput;
+use datalib::core::utils::util::{file_exists, generate_json_file, get_file_from_args, get_file_name};
 
 #[tokio::test]
 async fn test_get_file_from_args() {
